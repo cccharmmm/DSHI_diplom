@@ -1,0 +1,40 @@
+﻿@page "/"
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<div class="main-container">
+    <div class="left-block">
+        <img src="images/icon.png" class="logo-image" />
+        <h1 align="center">Добро пожаловать<br />в музыкальное пространство!</h1>
+        <p align="center">
+            Войдите, чтобы открыть мир нот, аудиозаписей и учебных материалов.
+            Этот ресурс создан для вас — учеников и преподавателей музыкальной школы,
+            чтобы обучение стало проще и интереснее.
+        </p>
+        <p align="center">Начнем?</p>
+    </div>
+    <div class="right-block">
+        <h2>Авторизация</h2>
+        <div class="form-group">
+            <input type="text" placeholder="Логин" class="form-control" @bind="username" />
+        </div>
+        <div class="form-group">
+            <div class="password-container">
+                <input id="password" type="password" placeholder="Пароль" class="form-control" @bind="password" />
+            </div>
+        </div>
+        <button type="button" class="login-button" @onclick="Login">Войти</button>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = null!;
+
+    private void Login()
+    {
+        NavigationManager.NavigateTo("/profile", false);
+    }
+}
