@@ -3,98 +3,102 @@
 @layout Layout.LayoutWithHeaderAndFooter
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-
+@inject HttpClient Http
 
 <div class="sheet-music-container">
     <h2 class="sheet-music-title" align="center">Ноты</h2>
     <div class="content-wrapper">
+     
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error-message">@errorMessage</div>
+        }
+
         <div class="filter-panel">
             <div class="filter-category">
-                <div class="filter-header">Инструменты <span class="arrow">▼</span></div>
+                <div class="filter-header">Инструмент <span class="arrow">▼</span></div>
                 <ul class="filter-list">
-                    <li>Фортепиано</li>
-                    <li>Скрипка</li>
-                    <li>Гитара</li>
-                    <li>Баян</li>
-                    <li>Саксофон</li>
-                    <li>Балалайка</li>
-                    <li>Домра</li>
-                    <li>Виолончель</li>
-                    <li>Альт</li>
-                    <li>Контрабас</li>
+                    @if (isLoading)
+                    {
+                        <li>Загрузка...</li>
+                    }
+                    else if (Instruments != null && Instruments.Any())
+                    {
+                        @foreach (var instrument in Instruments)
+                        {
+                            Console.WriteLine($"Instrument: {instrument.Name}");
+                            <li>@instrument.Name</li>
+                        }
+                    }
+                    else
+                    {
+                        <li>Нет данных</li>
+                    }
+                </ul>
+
+
+            </div>
+            <div class="filter-category">
+                <div class="filter-header">Композитор<span class="arrow">▼</span></div>
+                <ul class="filter-list">
+                    @if (isLoading)
+                    {
+                        <li>Загрузка...</li>
+                    }
+                    else if (Composers != null && Composers.Any())
+                    {
+                        @foreach (var composer in Composers)
+                        {
+                            Console.WriteLine($"Composer: {composer.Name}");
+                            <li>@composer.Name</li>
+                        }
+                    }
+                    else
+                    {
+                        <li>Нет данных</li>
+                    }
                 </ul>
             </div>
             <div class="filter-category">
-                <div class="filter-header">Композиторы <span class="arrow">▼</span></div>
+                <div class="filter-header">Класс<span class="arrow">▼</span></div>
                 <ul class="filter-list">
-                    <li>Иоганн Себастьян Бах</li>
-                    <li>Георг Фридрих Гендель</li>
-                    <li>Антонио Вивальди</li>
-                    <li>Вольфганг Амадей Моцарт</li>
-                    <li>Людвиг ван Бетховен</li>
-                    <li>Йозеф Гайдн</li>
-                    <li>Кристоф Виллибальд Глюк</li>
-                    <li>Фридерик Шопен</li>
-                    <li>Франц Шуберт</li>
-                    <li>Роберт Шуман</li>
-                    <li>Франц Лист</li>
-                    <li>Петр Ильич Чайковский</li>
-                    <li>Эдвард Григ</li>
-                    <li>Джузеппе Верди</li>
-                    <li>Николай Римский-Корсаков</li>
-                    <li>Александр Бородин</li>
-                    <li>Модест Мусоргский</li>
-                    <li>Жорж Бизе</li>
-                    <li>Михаил Глинка</li>
-                    <li>Сергей Рахманинов</li>
-                    <li>Арам Хачатурян</li>
-                    <li>Александр Скрябин</li>
-                    <li>Георгий Свиридов</li>
-                    <li>Никколо Паганини</li>
+                    @if (isLoading)
+                    {
+                        <li>Загрузка...</li>
+                    }
+                    else if (Classes != null && Classes.Any())
+                    {
+                        @foreach (var class_ in Classes)
+                        {
+                            Console.WriteLine($"Class: {class_.Name}");
+                            <li>@class_.Name</li>
+                        }
+                    }
+                    else
+                    {
+                        <li>Нет данных</li>
+                    }
                 </ul>
             </div>
             <div class="filter-category">
-                <div class="filter-header">Класс <span class="arrow">▼</span></div>
+                <div class="filter-header">Музыкальная форма<span class="arrow">▼</span></div>
                 <ul class="filter-list">
-                    <li>1 класс</li>
-                    <li>2 класс</li>
-                    <li>3 класс</li>
-                    <li>4 класс</li>
-                    <li>5 класс</li>
-                    <li>6 класс</li>
-                    <li>7 класс</li>
-                </ul>
-            </div>
-            <div class="filter-category">
-                <div class="filter-header">Музыкальные формы <span class="arrow">▼</span></div>
-                <ul class="filter-list">
-                    <li>Этюд</li>
-                    <li>Соната</li>
-                    <li>Рондо</li>
-                    <li>Прелюдия</li>
-                    <li>Фуга</li>
-                    <li>Сюита</li>
-                    <li>Концерт</li>
-                    <li>Песня</li>
-                    <li>Вальс</li>
-                    <li>Мэнуэт</li>
-                    <li>Полька</li>
-                    <li>Гавот</li>
-                    <li>Ноктюрн</li>
-                    <li>Романс</li>
-                    <li>Марш</li>
-                    <li>Полонез</li>
-                    <li>Тема с вариациями</li>
-                    <li>Ансамбль</li>
-                    <li>Колыбельная</li>
-                    <li>Ария</li>
-                    <li>Овертюра</li>
-                    <li>Сонатина</li>
-                    <li>Пьеса</li>
-                    <li>Мазурка</li>
-                    <li>Полифонические произведения</li>
-                    <li>Инвенция</li>
-                    <li>Аллегро</li>
+                    @if (isLoading)
+                    {
+                        <li>Загрузка...</li>
+                    }
+                    else if (MusicalForms != null && MusicalForms.Any())
+                    {
+                        @foreach (var musicalForm in MusicalForms)
+                        {
+                            Console.WriteLine($"MusicalForm: {musicalForm.Name}");
+                            <li>@musicalForm.Name</li>
+                        }
+                    }
+                    else
+                    {
+                        <li>Нет данных</li>
+                    }
                 </ul>
             </div>
         </div>
@@ -109,11 +113,6 @@
                     </button>
                     <div class="filter-container">
                         <div class="filter-buttons">
-                            <button class="filter-and-sort">
-                                <svg width="35" height="35" viewBox="0 0 55 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M16.0416 49H11.4583V44.3333H4.58325V39.6667H11.4583V35H16.0416V49ZM50.4166 44.3333H20.6249V39.6667H50.4166V44.3333ZM38.9583 35H34.3749V30.3333H4.58325V25.6667H34.3749V21.028H38.9583V35ZM50.4166 30.3333H43.5416V25.6667H50.4166V30.3333ZM25.2083 21H20.6249V16.3333H4.58325V11.6667H20.6249V7H25.2083V21ZM50.4166 16.3333H29.7916V11.6667H50.4166V16.3333Z" fill="#080808" />
-                                </svg>
-                            </button>
                             <button class="filter-and-sort" onclick="toggleDropdown()">
                                 <svg width="35" height="35" viewBox="0 0 44 43" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M16.4998 5.375L9.1665 12.5237H14.6665V25.0833H18.3332V12.5237H23.8332L16.4998 5.375ZM29.3332 30.4762V17.9167H25.6665V30.4762H20.1665L27.4998 37.625L34.8332 30.4762H29.3332Z" fill="black" fill-opacity="0.87" />
@@ -134,3 +133,41 @@
     </div>
 </div>
 
+@code {
+    private bool isLoading = true;
+    private List<Instrument> Instruments = new List<Instrument>();
+    private List<Composer> Composers = new List<Composer>();
+    private List<Class> Classes = new List<Class>();
+    private List<MusicalForm> MusicalForms = new List<MusicalForm>();
+
+    private string errorMessage = string.Empty;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Instruments = await Http.GetFromJsonAsync<List<Instrument>>("api/instrument") ?? new List<Instrument>();
+            Console.WriteLine($"Instruments: {Instruments?.Count} items");
+
+            Composers = await Http.GetFromJsonAsync<List<Composer>>("api/composer") ?? new List<Composer>();
+            Console.WriteLine($"Composers: {Composers?.Count} items");
+
+            Classes = await Http.GetFromJsonAsync<List<Class>>("api/class") ?? new List<Class>();
+            Console.WriteLine($"Classes: {Classes?.Count} items");
+
+            MusicalForms = await Http.GetFromJsonAsync<List<MusicalForm>>("api/musicalForm") ?? new List<MusicalForm>();
+            Console.WriteLine($"MusicalForms: {MusicalForms?.Count} items");
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки данных: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;  
+            StateHasChanged(); 
+        }
+    }
+}

@@ -4,6 +4,7 @@ html, body {
 
 a, .btn-link {
     color: #006bb7;
+    font-family: 'Tahoma', sans-serif;
 }
 
 .btn-primary {
@@ -55,6 +56,7 @@ body {
     padding: 0;
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
+    overflow-x: hidden;
 }
 
 .main-container {
@@ -345,8 +347,8 @@ label {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 300%;
-    max-width: 300%;
+    width: 330%;
+    max-width: 330%;
     margin: 0 auto;
     position: relative;
     padding-top: 10px;
@@ -366,7 +368,7 @@ label {
     padding: 0;
     cursor: pointer;
     position: absolute;
-    right: 140px;
+    right: 75px;
     transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
@@ -403,10 +405,13 @@ label {
     background-color: white;
     border: 1px solid #ddd;
     padding: 10px;
-    top: 100%; /*
-    left: 20;*/
-    width: 150px;
+    top: 80%;
+    min-width: 120px; 
+    max-width: auto;
+    white-space: nowrap;
+    overflow: hidden; 
     border-radius: 5px;
+    box-sizing: border-box;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     z-index: 1;
 }
@@ -438,13 +443,11 @@ label {
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
         }
 
-.dropdown-menu {
-    display: none;
-}
 
     .dropdown-menu.show {
         display: block;
     }
+   
 
 
 .filter-and-sort:hover {
@@ -470,12 +473,26 @@ label {
     border-radius: 8px;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
+    display: block; 
 }
 
 .filter-category {
     margin-bottom: 15px;
     position: relative;
 }
+
+.about-tests-panel {
+    display: block; /* Это гарантирует, что блок будет располагаться ниже */
+    width: 250px;
+    background: #f8f8f8;
+    margin-top: 10px; /* отступ сверху от предыдущего блока */
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    clear: both; /* Это гарантирует, что блок не будет находиться в одной строке с другими элементами */
+}
+
 
 .filter-header {
     font-size: 18px;
@@ -541,3 +558,7 @@ label {
     .filter-list.hidden {
         display: none;
     }
+    .filter-list.open {
+        display: none;
+    }
+
