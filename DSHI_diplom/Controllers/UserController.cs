@@ -2,8 +2,9 @@
 using DSHI_diplom.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
-[Authorize(Roles = "user")]
+[Authorize]
 [Route("api/user")]
 [ApiController]
 public class UserController : ControllerBase
@@ -13,6 +14,20 @@ public class UserController : ControllerBase
     public UserController(IUserService service)
     {
         _service = service;
+    }
+  
+    [HttpGet("me")]
+    public async Task<ActionResult<User>> GetMe()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+
+        var user = await _service.GetByIdAsync(int.Parse(userId));
+        if (user == null)
+            return NotFound();
+
+        return Ok(user);
     }
 
     [HttpGet]

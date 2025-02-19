@@ -1,56 +1,61 @@
-﻿//using Microsoft.AspNetCore.Components;
-//using Microsoft.JSInterop;
-//using DSHI_diplom.Model;
-//using Blazored.LocalStorage;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
+using DSHI_diplom.Model;
+using Blazored.LocalStorage;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System.Net.Http.Headers;
 
-//namespace DSHI_diplom.Components.Pages
-//{
-//    public partial class Profile
-//    {
-//        [Inject] private HttpClient Http { get; set; }
-//        [Inject] private ILocalStorageService LocalStorage { get; set; }
-//        [Inject] private NavigationManager NavigationManager { get; set; }
+namespace DSHI_diplom.Components.Pages
+{
+    public partial class Profile
+    {
+        [Inject] private HttpClient Http { get; set; }
+        [Inject] private ILocalStorageService LocalStorage { get; set; }
+        [Inject] private NavigationManager NavigationManager { get; set; }
 
-//        private User _userProfile;
-//        private string _token;
-//        private bool _isLoading = true;
+        private User _userProfile = new User();
+        private string token;
 
-//        protected override async Task OnAfterRenderAsync(bool firstRender)
-//        {
-//            if (firstRender)
-//            {
-//                _token = await GetTokenAsync();
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                token = await LocalStorage.GetItemAsync<string>("authToken");
 
-//                if (_token == null)
-//                {
-//                    NavigationManager.NavigateTo("/login");
-//                    return;
-//                }
+                if (string.IsNullOrEmpty(token))
+                {
+                    Console.WriteLine("Токен не найден!");
+                }
+                else
+                {
+                    Console.WriteLine($"Токен: {token}");
+                    await GetUserProfile();
+                }
 
-//                var requestMessage = new HttpRequestMessage(HttpMethod.Get, "https://localhost:7202/api/user/profile");
-//                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _token);
+                StateHasChanged();
+            }
+        }
 
-//                var response = await Http.SendAsync(requestMessage);
+        private async Task GetUserProfile()
+        {
+            var token = await LocalStorage.GetItemAsync<string>("authToken");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, "api/user/me");
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-//                if (response.IsSuccessStatusCode)
-//                {
-//                    _userProfile = await response.Content.ReadFromJsonAsync<User>();
-//                }
-//                else
-//                {
-//                    var errorMessage = await response.Content.ReadAsStringAsync();
-//                    Console.WriteLine($"Ошибка при получении профиля: {errorMessage}");
-//                    NavigationManager.NavigateTo("/login");
-//                }
+            var response = await Http.SendAsync(requestMessage);
 
-//                _isLoading = false;
-//                StateHasChanged();  // Обновляем UI
-//            }
-//        }
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                _userProfile = JsonConvert.DeserializeObject<User>(content);
+            }
+            else
+            {
+                Console.WriteLine("Не удалось получить данные пользователя.");
+            }
+        }
 
-//        private async Task<string> GetTokenAsync()
-//        {
-//            return await LocalStorage.GetItemAsync<string>("authToken");
-//        }
-//    }
-//}
+
+    }
+}

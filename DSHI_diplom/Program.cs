@@ -7,6 +7,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DSHI_diplom.Services.Interfaces;
 using Blazored.LocalStorage;
+using DSHI_diplom.Services;
+using Microsoft.AspNetCore.Identity;
+using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +41,13 @@ builder.Services.AddScoped<ITestResultService, TestResultService>();
 builder.Services.AddScoped<ITestService, TestService>();
 builder.Services.AddScoped<ITheoreticalMaterialService, TheoreticalMaterialService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddHttpClient<AuthService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7202/");
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+});
+builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -47,17 +57,27 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = "your_issuer",
-            ValidAudience = "your_audience",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your_secret_key"))
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],  
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 builder.Services.AddAuthorization();
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7202/") });
-
+builder.Services.AddScoped(sp =>
+{
+    var httpClient = new HttpClient { BaseAddress = new Uri("https://localhost:7202") };
+    return httpClient;
+});
 
 builder.Services.AddControllers();
 

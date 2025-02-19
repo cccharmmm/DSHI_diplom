@@ -1,8 +1,13 @@
-﻿namespace DSHI_diplom.Model
+﻿using System.Text.Json.Serialization;
+
+namespace DSHI_diplom.Model
 {
     public class LoginRequest
     {
-        public string Login { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
+        [JsonPropertyName("login")]
+        public string? Login { get; set; }
+
+        [JsonPropertyName("password")]
+        public string? Password { get; set; } 
     }
 }

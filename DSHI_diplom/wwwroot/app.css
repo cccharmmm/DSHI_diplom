@@ -6,6 +6,11 @@ a, .btn-link {
     color: #006bb7;
     font-family: 'Tahoma', sans-serif;
 }
+.link-style {
+    color: #560606;
+    font-family: 'Tahoma', sans-serif;
+}
+
 
 .btn-primary {
     color: #fff;
@@ -227,6 +232,27 @@ label {
 
 .save-button-container {
     margin-bottom: 40px;
+}
+.input-group {
+    display: flex;
+    width: 100%;
+}
+
+    .input-group .form-control {
+        flex-grow: 1;
+    }
+
+    .input-group .password-toggle{
+        background: none;
+        border: none;
+        margin-left: 5px;
+        cursor: pointer;
+    }
+
+.password-toggle {
+    padding: 0;
+    width: 24px;
+    height: 24px;
 }
 
 .go-to-collections-button {

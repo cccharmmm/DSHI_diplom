@@ -48,7 +48,9 @@ namespace DSHI_diplom.Services.Implementations
         public async Task<User?> AuthenticateAsync(string login, string password)
         {
             return await _context.Users
+                                 .Include(u => u.Role) 
                                  .FirstOrDefaultAsync(u => u.Login == login && u.Password == password);
         }
+
     }
 }

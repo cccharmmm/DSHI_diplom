@@ -1,26 +1,57 @@
 ﻿using System.Net.Http.Json;
 using System.Threading.Tasks;
 using DSHI_diplom.Model;
+using Blazored.LocalStorage;
+using System.Text.Json;
+using System.Net.Http.Headers;
 
 public class AuthService
 {
     private readonly HttpClient _httpClient;
+    private readonly ILocalStorageService _localStorage;
 
-    public AuthService(HttpClient httpClient)
+    public AuthService(HttpClient httpClient, ILocalStorageService localStorage)
     {
         _httpClient = httpClient;
+        _localStorage = localStorage;
     }
 
-    public async Task<string?> LoginAsync(string username, string password)
+    public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/auth/login", new { Login = username, Password = password });
+        Console.WriteLine($"Отправка запроса: Login={request.Login}, Password={request.Password}");
 
-        if (response.IsSuccessStatusCode)
+        var response = await _httpClient.PostAsJsonAsync("api/auth/login", request, new JsonSerializerOptions
         {
-            return await response.Content.ReadAsStringAsync();
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception("Invalid login attempt.");
         }
 
-        return null;
+        var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+        if (result != null)
+        {
+            await _localStorage.SetItemAsStringAsync("authToken", result.Token);
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result.Token);
+
+            Console.WriteLine($"Token: {result.Token}");
+        }
+
+        return result;
     }
 
+
+    public async Task Logout()
+    {
+        await _localStorage.RemoveItemAsync("authToken");
+        _httpClient.DefaultRequestHeaders.Authorization = null;
+    }
+
+    public async Task<string> GetToken()
+    {
+        return await _localStorage.GetItemAsStringAsync("authToken");
+    }
 }
