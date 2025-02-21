@@ -4,24 +4,30 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-@*  *@
+
+<EditForm Model="@_userProfile"  OnInvalidSubmit="HandleInvalidSubmit">
+    <DataAnnotationsValidator />
 <div class="profile-container">
     <h2 class="profile-title" align="center">Личный кабинет</h2>
     <div class="form-group">
         <label for="firstName">Имя</label>
-        <input type="text" class="form-control" id="firstName" placeholder="Ваше имя" @bind="_userProfile.Name" />
+            <input type="text" class="form-control" id="firstName" placeholder="Ваше имя*" @bind="_userProfile.Name" />
+            <ValidationMessage For="@(() => _userProfile.Name)" />
     </div>
     <div class="form-group">
         <label for="lastName">Фамилия</label>
-        <input type="text" class="form-control" id="lastName" placeholder="Ваша фамилия" @bind="_userProfile.LastName" />
+            <input type="text" class="form-control" id="lastName" placeholder="Ваша фамилия*" @bind="_userProfile.LastName" />
+            <ValidationMessage For="@(() => _userProfile.LastName)" />
     </div>
     <div class="form-group">
         <label for="patronymic">Отчество</label>
-        <input type="text" class="form-control" id="patronymic" placeholder="Ваше отчество" @bind="_userProfile.MiddleName" />
+            <input type="text" class="form-control" id="patronymic" placeholder="Ваше отчество*" @bind="_userProfile.MiddleName" />
+            <ValidationMessage For="@(() => _userProfile.MiddleName)" />
     </div>
     <div class="form-group">
         <label for="login">Логин</label>
-        <input type="text" class="form-control" id="login" placeholder="Ваш логин" @bind="_userProfile.Login" />
+            <input type="text" class="form-control" id="login" placeholder="Ваш логин*" @bind="_userProfile.Login" />
+            <ValidationMessage For="@(() => _userProfile.Login)" />
     </div>
     @code {
         private string _password;
@@ -30,14 +36,12 @@
         private void TogglePasswordVisibility()
         {
             _showPassword = !_showPassword;
-        }
-
-       
+        } 
     }
    <div class="form-group">
     <label for="password">Пароль</label>
         <div class="input-group" >
-        <input type="@(_showPassword ? "text" : "password")" class="form-control" id="password" placeholder="Ваш пароль" @bind="_userProfile.Password" />
+                <input type="@(_showPassword ? "text" : "password")" class="form-control" id="password" placeholder="Ваш пароль" @bind="_userProfile.Password" />
             <div style="padding: 10px 10px;">
             <button class="password-toggle"
                     title="Просмотреть/скрыть пароль"
@@ -67,12 +71,30 @@
                     <path d="M18.5002 33.2521L15.9022 30.8871C6.67516 22.52 0.583496 17.0017 0.583496 10.2292C0.583496 4.71083 4.91933 0.375 10.4377 0.375C13.5552 0.375 16.5472 1.82625 18.5002 4.11958C20.4531 1.82625 23.4452 0.375 26.5627 0.375C32.081 0.375 36.4168 4.71083 36.4168 10.2292C36.4168 17.0017 30.3252 22.52 21.0981 30.905L18.5002 33.2521Z" fill="#560606" />
                 </svg>
             </button>
+               
     </div>
+            <ValidationMessage For="@(() => _userProfile.Password)" />
 </div>
-
     <div class="form-group">
         <div class="save-button-container">
-            <button class="save-button" @* @onclick="SaveChanges" *@>Сохранить</button>
+            <button class="save-button" @onclick="ConfirmSaveChanges">Сохранить</button>
         </div>
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <p style="text-align: center; margin-top: -30px; color: @messageColor;">@successMessage</p>
+        }
+        @if (showConfirmationModal && _isFormValid)
+        {
+                <div class="modal-overlay">
+                    <div class="modal-content">
+                    <h4>Сохранить изменения?</h4>
+                    <div class="modal-buttons">
+                            <button id="confirm-save" class="confirm-button" @onclick="SaveChanges">Сохранить</button>
+                        <button id="cancel-save" class="cancel-button" @onclick="CancelSave">Отмена</button>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>
+</EditForm>

@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Components\Pages\NotesPage.razor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Components\Pages\NotesPage.razor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="JWT" Version="11.0.0" />
