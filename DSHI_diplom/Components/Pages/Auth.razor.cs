@@ -119,8 +119,6 @@ namespace DSHI_diplom.Components.Pages
             }
         }
 
-
-
         private async Task HideErrorAfterDelay()
         {
             StateHasChanged();

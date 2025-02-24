@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Xml.Linq;
 using DSHI_diplom.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace DSHI_diplom.Controllers
 {
@@ -12,17 +13,44 @@ namespace DSHI_diplom.Controllers
     public class NoteController : ControllerBase
     {
         private readonly INoteService _service;
+        private readonly DiplomContext _context;
 
-        public NoteController(INoteService service)
+        public NoteController(INoteService service, DiplomContext context)
         {
             _service = service;
+            _context = context;
+        }
+        [HttpGet("filter")]
+        public async Task<ActionResult<List<Note>>> GetFilteredNotes(
+        [FromQuery] string instrument = null,
+        [FromQuery] string composer = null,
+        [FromQuery] string class_ = null,
+        [FromQuery] string musicalForm = null)
+        {
+            var notes = await _service.GetFilteredNotesAsync(instrument, composer, class_, musicalForm);
+            return Ok(notes);
         }
         [HttpGet]
         public async Task<ActionResult<List<Note>>> GetAll()
         {
             return Ok(await _service.GetAllAsync());
         }
+        [HttpGet("search")]
+        public async Task<ActionResult<List<Note>>> GetFilteredNotesBySearch(string searchText)
+        {
+            if (string.IsNullOrEmpty(searchText))
+            {
+                return BadRequest("Search text cannot be empty.");
+            }
 
+            var notes = await _service.GetFilteredNotesBySearchAsync(searchText);
+            if (notes == null || notes.Count == 0)
+            {
+                return NotFound("No notes found matching the search criteria.");
+            }
+
+            return Ok(notes);
+        }
         [HttpGet("{id}")]
         public async Task<ActionResult<Note>> GetById(int id)
         {

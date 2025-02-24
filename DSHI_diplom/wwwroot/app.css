@@ -372,14 +372,14 @@ label {
 .search-bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    width: 330%;
-    max-width: 330%;
+    justify-content: flex-start;
+    width: 90%;
+    max-width: 100%;
+    min-width: 800px;
     margin: 0 auto;
     position: relative;
     padding-top: 10px;
-    padding-bottom: 20px;
-    left: 10%;
+    padding-bottom: 20px; 
     gap: 10px;
 }
 
@@ -406,6 +406,10 @@ label {
         transform: scale(0.95);
     }
 
+.main-content {
+    min-width: 800px; 
+    flex-grow: 1;
+}
 .filter-buttons {
     display: flex;
     gap: 5px;
@@ -492,14 +496,17 @@ label {
 }
 
 .filter-panel {
-    width: 250px;
+    width: 300px;
+    min-width:300px;
     background: #f8f8f8;
     margin-top: 10px;
+    margin-right: 5px;
+    margin-left: 10px;
     padding: 15px;
     border-radius: 8px;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
-    display: block; 
+    display: block;
 }
 
 .filter-category {
@@ -625,4 +632,154 @@ label {
     background-color: #560606;
     color: white;
     border: none;
+}
+.materials-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px; 
+    margin-top: 20px;
+    margin-bottom: 30px;
+    margin-left: 53px;
+    align-items:stretch;
+}
+
+.material-container {
+    display: flex;
+    flex-direction: column; 
+    gap: 10px; 
+}
+
+.material-item {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    flex-grow: 1; 
+}
+
+    .material-item:hover {
+        transform: scale(1.05) translateY(-10px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        background-color: #f0f0f0;
+    }
+
+    .material-item h3 {
+        margin-top: 0;
+        font-size: 1.25rem;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        color: #560606;
+    }
+
+    .material-item p {
+        margin: 8px 0;
+        font-size: 0.9rem;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-word;
+    }
+.material-item-test {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    flex-grow: 1;
+}
+
+
+
+    .material-item-test h3 {
+        margin-top: 0;
+        font-size: 1.25rem;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        color: #560606;
+    }
+
+    .material-item-test p {
+        margin: 8px 0;
+        font-size: 0.9rem;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-word;
+    }
+
+.functions-button-container {
+    display: flex;
+    justify-content: right;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.function-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid grey;
+    border-radius: 50%;
+    background-color: transparent;
+    color: #007bff;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+    .function-button:hover {
+        background-color: white;
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .function-button:active {
+        background-color: #f0f0f0;
+        border-color: #cccccc;
+        color: #007bff;
+    }
+
+.function-button svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+.modal-content audio {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box; 
+}
+.close-button {
+    position: absolute;
+    top: -3px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
 }

@@ -15,10 +15,21 @@ namespace DSHI_diplom.Controllers
         {
             _service = service;
         }
-        [HttpGet]
-        public async Task<ActionResult<List<ApplicationFile>>> GetAll()
+        [Route("api/files")]
+        public class FilesController : ControllerBase
         {
-            return Ok(await _service.GetAllAsync());
+            [HttpGet("{fileName}")]
+            public IActionResult GetFile(string fileName)
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pdf", fileName);
+                if (!System.IO.File.Exists(filePath))
+                {
+                    return NotFound();
+                }
+
+                var fileBytes = System.IO.File.ReadAllBytes(filePath);
+                return File(fileBytes, "application/pdf", fileName);
+            }
         }
 
         [HttpGet("{id}")]

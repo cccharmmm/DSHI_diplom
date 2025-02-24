@@ -10,6 +10,8 @@ using Blazored.LocalStorage;
 using DSHI_diplom.Services;
 using Microsoft.AspNetCore.Identity;
 using System.Net.Http.Headers;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,6 +64,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = null; 
+});
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    });
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -95,8 +106,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger(); 
     app.UseSwaggerUI();
 }
+var provider = new FileExtensionContentTypeProvider();
+provider.Mappings[".mp3"] = "audio/mpeg";
 
-
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = provider
+});
+app.Use(async (context, next) =>
+{
+    context.Request.Headers.Remove("Range");
+    await next();
+});
+app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseDeveloperExceptionPage();
 app.UseAntiforgery();

@@ -2,9 +2,27 @@
 @inherits LayoutComponentBase
 @layout Layout.LayoutWithHeaderAndFooter
 @inject NavigationManager Navigation
+@inject DSHI_diplom.Services.Interfaces.INoteService NoteService
+@inject DSHI_diplom.Services.Interfaces.IInstrumentService InstrumentService
+@inject DSHI_diplom.Services.Interfaces.IComposerService ComposerService
+@inject DSHI_diplom.Services.Interfaces.IClassService ClassService
+@inject DSHI_diplom.Services.Interfaces.IMusicalFormService MusicalFormService
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@rendermode InteractiveServer
 
+@if (showAudioModal)
+{
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-button" @onclick="CloseAudioModal">×</button>
+            <audio controls>
+                <source src="@audioUrl" type="audio/mpeg">
+                Ваш браузер не поддерживает аудиоэлемент.
+            </audio>
+        </div>
+    </div>
+}
 <div class="sheet-music-container">
     <h2 class="sheet-music-title" align="center">Ноты</h2>
     <div class="content-wrapper">
@@ -22,12 +40,11 @@
                     {
                         <li>Загрузка...</li>
                     }
-                    else if (Instruments != null && Instruments.Any())
+                    else if (InstrumentList != null && InstrumentList.Any())
                     {
-                        @foreach (var instrument in Instruments)
+                        @foreach (var instrument in InstrumentList)
                         {
-                            Console.WriteLine($"Instrument: {instrument.Name}");
-                            <li>@instrument.Name</li>
+                            <li @onclick="async () => await SelectInstrument(instrument.Name)">@instrument.Name</li>
                         }
                     }
                     else
@@ -35,9 +52,8 @@
                         <li>Нет данных</li>
                     }
                 </ul>
-
-
             </div>
+
             <div class="filter-category">
                 <div class="filter-header">Композитор<span class="arrow">▼</span></div>
                 <ul class="filter-list">
@@ -45,12 +61,11 @@
                     {
                         <li>Загрузка...</li>
                     }
-                    else if (Composers != null && Composers.Any())
+                    else if (ComposerList != null && ComposerList.Any())
                     {
-                        @foreach (var composer in Composers)
+                        @foreach (var composer in ComposerList)
                         {
-                            Console.WriteLine($"Composer: {composer.Name}");
-                            <li>@composer.Name</li>
+                            <li @onclick="async() => await SelectComposer(composer.Name)">@composer.Name</li>
                         }
                     }
                     else
@@ -59,6 +74,7 @@
                     }
                 </ul>
             </div>
+
             <div class="filter-category">
                 <div class="filter-header">Класс<span class="arrow">▼</span></div>
                 <ul class="filter-list">
@@ -66,12 +82,11 @@
                     {
                         <li>Загрузка...</li>
                     }
-                    else if (Classes != null && Classes.Any())
+                    else if (ClassList != null && ClassList.Any())
                     {
-                        @foreach (var class_ in Classes)
+                        @foreach (var class_ in ClassList)
                         {
-                            Console.WriteLine($"Class: {class_.Name}");
-                            <li>@class_.Name</li>
+                            <li @onclick="async() => await SelectClass(class_.Name)">@class_.Name</li>
                         }
                     }
                     else
@@ -80,6 +95,7 @@
                     }
                 </ul>
             </div>
+
             <div class="filter-category">
                 <div class="filter-header">Музыкальная форма<span class="arrow">▼</span></div>
                 <ul class="filter-list">
@@ -87,12 +103,11 @@
                     {
                         <li>Загрузка...</li>
                     }
-                    else if (MusicalForms != null && MusicalForms.Any())
+                    else if (MusicalFormList != null && MusicalFormList.Any())
                     {
-                        @foreach (var musicalForm in MusicalForms)
+                        @foreach (var musicalForm in MusicalFormList)
                         {
-                            Console.WriteLine($"MusicalForm: {musicalForm.Name}");
-                            <li>@musicalForm.Name</li>
+                            <li @onclick="async() => await SelectMusicalForm(musicalForm.Name)">@musicalForm.Name</li>
                         }
                     }
                     else
@@ -105,69 +120,102 @@
         <div class="main-content">
             <div class="search-container">
                 <div class="search-bar">
-                    <input type="text" class="form-control" id="search" placeholder="Поиск нот" />
-                    <button class="search-btn">
+                    <input type="text" maxlength="30" class="form-control" id="search" @oninput="HandleInput" placeholder="Поиск нот"/>
+                    <button class="search-btn" @onclick="HandleSearch">
                         <svg width="20" height="20" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M0.0458984 17.594C0.0458984 26.965 7.67788 34.5616 17.2179 34.5616C21.0339 34.5616 24.5773 33.2342 27.5756 31.0045C27.5756 31.2335 27.8481 31.4461 27.8481 31.6369L41.4767 45.2109C42.2944 46.094 43.9298 46.094 44.7475 45.2109C45.5652 44.3278 45.5652 42.8941 44.7475 42.0109L31.119 28.4369C30.8464 28.2461 30.8464 28.0989 30.5738 27.9899C32.7544 25.117 34.1173 21.5109 34.1173 17.594C34.1173 8.22033 26.4853 0.623779 17.2179 0.623779C7.67788 0.623779 0.0458984 8.22033 0.0458984 17.594ZM4.68016 17.594C4.68016 10.7198 10.1316 5.14841 17.2184 5.14841C24.0327 5.14841 29.4841 10.7198 29.4841 17.594C29.4841 24.4655 24.0327 30.0368 17.2184 30.0368C10.1316 30.0368 4.68016 24.4655 4.68016 17.594Z" fill="black" />
                         </svg>
                     </button>
                     <div class="filter-container">
                         <div class="filter-buttons">
-                            <button class="filter-and-sort" onclick="toggleDropdown()">
+                            <button class="filter-and-sort" @onclick="ToggleDropdown">
                                 <svg width="35" height="35" viewBox="0 0 44 43" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M16.4998 5.375L9.1665 12.5237H14.6665V25.0833H18.3332V12.5237H23.8332L16.4998 5.375ZM29.3332 30.4762V17.9167H25.6665V30.4762H20.1665L27.4998 37.625L34.8332 30.4762H29.3332Z" fill="black" fill-opacity="0.87" />
                                 </svg>
                             </button>
                             <div class="dropdown-menu">
                                 <ul>
-                                    <li><a href="#">По дате</a></li>
-                                    <li><a href="#">По алфавиту</a></li>
-                                    <li><a href="#">По классам</a></li>
+                                    <li><a href="#" @onclick="SortByDate">По дате</a></li>
+                                    <li><a href="#" @onclick="SortByAlphabet">По алфавиту</a></li>
+                                    <li><a href="#" @onclick="SortByClass">По классам</a></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="materials-list">
+                @if (isLoading)
+                {
+                    <p>Загрузка нот...</p>
+                }
+                else if (filteredNotes != null && filteredNotes.Any())
+                {
+                    @foreach (var note in filteredNotes)
+                    {
+                        <div class="material-container">
+                            <div class="material-item" @onclick="() => OpenPdf(note)">
+                                <div class="material-content">
+                                    <h3>@note.Name</h3>
+
+                                    @if (!string.IsNullOrEmpty(note.Composer?.Name))
+                                    {
+                                        <p>Композитор: @note.Composer.Name</p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(note.Instrument?.Name))
+                                    {
+                                        <p>Инструмент: @note.Instrument.Name</p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(note.Class?.Name))
+                                    {
+                                        <p>Класс: @note.Class.Name</p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(note.Musicalform?.Name))
+                                    {
+                                        <p>Музыкальная форма: @note.Musicalform.Name</p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(note.Description))
+                                    {
+                                        <p>Описание: @note.Description</p>
+                                    }
+
+                                    @if (note.DateOfCreate.HasValue)
+                                    {
+                                        <p>Дата создания: @note.DateOfCreate.Value.ToString("dd.MM.yyyy")</p>
+                                    }
+                                </div>
+                            </div>
+                            <div class="functions-button-container">
+                            @if (GetDownloadUrl(note) != null)
+                            {
+                                    <a href="@GetDownloadUrl(note)" download class="function-button" >
+                                        <svg width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M7 0C7.552 0 8 0.45 8 1V6.58997L9.29303 5.29004C9.68303 4.90004 10.317 4.90004 10.707 5.29004C11.098 5.68004 11.098 6.31996 10.707 6.70996L7.70697 9.70996C7.51997 9.88996 7.265 10 7 10C6.735 10 6.48003 9.88996 6.29303 9.70996L3.29303 6.70996C2.90203 6.31996 2.90203 5.68004 3.29303 5.29004C3.68303 4.90004 4.31697 4.90004 4.70697 5.29004L6 6.58997V1C6 0.45 6.448 0 7 0ZM1 7C1.552 7 2 7.45 2 8V11C2 11.55 2.448 12 3 12H11C11.552 12 12 11.55 12 11V8C12 7.45 12.448 7 13 7C13.552 7 14 7.45 14 8V11C14 12.66 12.657 14 11 14H3C1.343 14 0 12.66 0 11V8C0 7.45 0.448 7 1 7Z" fill="grey" />
+                                        </svg>
+                                    </a>
+                            }
+                            @if (note.AudioFile != null && !string.IsNullOrEmpty(note.AudioFile.Path))
+                            {
+                                    <button class="function-button" @onclick="() => OpenAudioModal(note.AudioFile)">
+                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M4.13989 4.01001C4.52989 2.86001 5.65 2 7 2C8.35 2 9.47011 2.86001 9.86011 4.01001C9.64011 4.04001 9.45004 4.14004 9.29004 4.29004C9.11004 4.48004 9 4.73 9 5V10C9 10.47 9.32 10.86 9.75 10.97C9.41 11.58 8.75 12 8 12H7C6.45 12 6 12.45 6 13C6 13.55 6.45 14 7 14H8C9.93 14 11.5499 12.63 11.9199 10.8C13.1999 10.3 14 8.92 14 7.5C14 6.09 13.21 4.71996 11.95 4.20996C11.61 1.80996 9.5 0 7 0C4.5 0 2.39005 1.80996 2.05005 4.20996C0.790049 4.71996 0 6.09 0 7.5C0 9.28 1.26989 11 3.13989 11H4C4.55 11 5 10.55 5 10V5C5 4.73 4.88996 4.48004 4.70996 4.29004C4.54996 4.14004 4.35989 4.04001 4.13989 4.01001ZM2 7.5C2 6.61 2.53 6.10001 3 6.01001V8.98999C2.53 8.89999 2 8.39 2 7.5ZM11 6.01001C11.47 6.10001 12 6.61 12 7.5C12 8.39 11.47 8.89999 11 8.98999V6.01001Z" fill="grey" />
+                                        </svg>
+                                    </button>
+                            }
+                        </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>Ноты не найдены</p>
+                }
+            </div>
         </div>
     </div>
 </div>
 
-@code {
-    private bool isLoading = true;
-    private List<Instrument> Instruments = new List<Instrument>();
-    private List<Composer> Composers = new List<Composer>();
-    private List<Class> Classes = new List<Class>();
-    private List<MusicalForm> MusicalForms = new List<MusicalForm>();
-
-    private string errorMessage = string.Empty;
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            Instruments = await Http.GetFromJsonAsync<List<Instrument>>("api/instrument") ?? new List<Instrument>();
-            Console.WriteLine($"Instruments: {Instruments?.Count} items");
-
-            Composers = await Http.GetFromJsonAsync<List<Composer>>("api/composer") ?? new List<Composer>();
-            Console.WriteLine($"Composers: {Composers?.Count} items");
-
-            Classes = await Http.GetFromJsonAsync<List<Class>>("api/class") ?? new List<Class>();
-            Console.WriteLine($"Classes: {Classes?.Count} items");
-
-            MusicalForms = await Http.GetFromJsonAsync<List<MusicalForm>>("api/musicalForm") ?? new List<MusicalForm>();
-            Console.WriteLine($"MusicalForms: {MusicalForms?.Count} items");
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка загрузки данных: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;  
-            StateHasChanged(); 
-        }
-    }
-}

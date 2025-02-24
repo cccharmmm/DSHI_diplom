@@ -4,6 +4,11 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@inject DSHI_diplom.Services.Interfaces.IClassService ClassService
+@inject DSHI_diplom.Services.Interfaces.IMusicalFormService MusicalFormService
+@inject DSHI_diplom.Services.Interfaces.ITestService TestService
+@inject DSHI_diplom.Services.Interfaces.ISubjectService SubjectService
+@rendermode InteractiveServer
 
 <div class="sheet-music-container">
     <h2 class="sheet-music-title" align="center">Тесты</h2>
@@ -22,12 +27,11 @@
                     {
                         <li>Загрузка...</li>
                     }
-                    else if (Classes != null && Classes.Any())
+                    else if (ClassList != null && ClassList.Any())
                     {
-                        @foreach (var class_ in Classes)
+                        @foreach (var class_ in ClassList)
                         {
-                            Console.WriteLine($"Class: {class_.Name}");
-                            <li>@class_.Name</li>
+                            <li @onclick="async () => await SelectClass(class_.Name)">@class_.Name</li>
                         }
                     }
                     else
@@ -43,12 +47,11 @@
                     {
                         <li>Загрузка...</li>
                     }
-                    else if (Subjects != null && Subjects.Any())
+                    else if (SubjectList != null && SubjectList.Any())
                     {
-                        @foreach (var subject in Subjects)
+                        @foreach (var subject in SubjectList)
                         {
-                            Console.WriteLine($"Class: {subject.Name}");
-                            <li>@subject.Name</li>
+                            <li @onclick="async () => await SelectSubject(subject.Name)">@subject.Name</li>
                         }
                     }
                     else
@@ -58,15 +61,11 @@
                 </ul>
             </div>
         </div>
-      @*  <div class="description-container" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem;">
-        <h2>Проверь свои знания!</h2>
-        <p>Пройди тесты, чтобы закрепить пройденный материал и узнать свои сильные стороны. Теоретический материал также доступен для подготовки и повторения.</p>
-    </div> *@
         <div class="main-content">
             <div class="search-container">
                 <div class="search-bar">
-                    <input type="text" class="form-control" id="search" placeholder="Поиск нот" />
-                    <button class="search-btn">
+                    <input type="text" maxlength="30" class="form-control" id="search" @oninput="HandleInput" placeholder="Поиск теcтов" />
+                    <button class="search-btn" @onclick="HandleSearch">
                         <svg width="20" height="20" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M0.0458984 17.594C0.0458984 26.965 7.67788 34.5616 17.2179 34.5616C21.0339 34.5616 24.5773 33.2342 27.5756 31.0045C27.5756 31.2335 27.8481 31.4461 27.8481 31.6369L41.4767 45.2109C42.2944 46.094 43.9298 46.094 44.7475 45.2109C45.5652 44.3278 45.5652 42.8941 44.7475 42.0109L31.119 28.4369C30.8464 28.2461 30.8464 28.0989 30.5738 27.9899C32.7544 25.117 34.1173 21.5109 34.1173 17.594C34.1173 8.22033 26.4853 0.623779 17.2179 0.623779C7.67788 0.623779 0.0458984 8.22033 0.0458984 17.594ZM4.68016 17.594C4.68016 10.7198 10.1316 5.14841 17.2184 5.14841C24.0327 5.14841 29.4841 10.7198 29.4841 17.594C29.4841 24.4655 24.0327 30.0368 17.2184 30.0368C10.1316 30.0368 4.68016 24.4655 4.68016 17.594Z" fill="black" />
                         </svg>
@@ -89,36 +88,47 @@
                     </div>
                 </div>
             </div>
+            <div class="materials-list">
+                @if (isLoading)
+                {
+                    <p>Загрузка тестов...</p>
+                }
+                else if (filteredTest != null && filteredTest.Any())
+                {
+                    @foreach (var test in filteredTest)
+                    {
+                        <div class="material-container">
+                            <div class="material-item-test">
+                                <div class="material-content">
+                                    <h3>@test.Name</h3>
+
+                                    @if (!string.IsNullOrEmpty(test.Subject?.Name))
+                                    {
+                                        <p>Предмет: @test.Subject.Name</p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(test.Class?.Name))
+                                    {
+                                        <p>Класс: @test.Class.Name</p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(test.Description))
+                                    {
+                                        <p>Описание: @test.Description</p>
+                                    }
+                                </div>
+                            </div>
+                            <div class="save-button-container">
+                                <button class="save-button" @onclick="() => StartTest(test)" style="padding: 6px 12px;  cursor: pointer; width:150px;">
+                                    Начать тест
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>Тесты не найдены</p>
+                }
+            </div>
         </div>
     </div>
 </div>
-
-@code {
-    private bool isLoading = true;
-    private List<Class> Classes = new List<Class>();
-    private List<Subject> Subjects = new List<Subject>();
-    private string errorMessage = string.Empty;
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            Classes = await Http.GetFromJsonAsync<List<Class>>("api/class") ?? new List<Class>();
-            Console.WriteLine($"Classes: {Classes?.Count} items");
-
-            Subjects = await Http.GetFromJsonAsync<List<Subject>>("api/subject") ?? new List<Subject>();
-            Console.WriteLine($"Subjects: {Subjects?.Count} items");
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка загрузки данных: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-            StateHasChanged();
-        }
-    }
-}

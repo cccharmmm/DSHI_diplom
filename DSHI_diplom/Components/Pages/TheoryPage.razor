@@ -1,9 +1,14 @@
 ﻿@page "/theory"
 @inherits LayoutComponentBase
 @layout Layout.LayoutWithHeaderAndFooter
+@inject DSHI_diplom.Services.Interfaces.ITheoreticalMaterialService TheoreticalMaterialService
+@inject DSHI_diplom.Services.Interfaces.IAuthorService AuthorService
+@inject DSHI_diplom.Services.Interfaces.ISubjectService SubjectService
+@inject DSHI_diplom.Services.Interfaces.IClassService ClassService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@rendermode InteractiveServer
 
 <div class="sheet-music-container">
     <h2 class="sheet-music-title" align="center">Теоретический материал</h2>
@@ -22,12 +27,11 @@
                     {
                         <li>Загрузка...</li>
                     }
-                    else if (Classes != null && Classes.Any())
+                    else if (ClassList != null && ClassList.Any())
                     {
-                        @foreach (var class_ in Classes)
+                        @foreach (var class_ in ClassList)
                         {
-                            Console.WriteLine($"Class: {class_.Name}");
-                            <li>@class_.Name</li>
+                            <li @onclick="async () => await SelectClass(class_.Name)">@class_.Name</li>
                         }
                     }
                     else
@@ -43,12 +47,11 @@
                     {
                         <li>Загрузка...</li>
                     }
-                    else if (Authors != null && Authors.Any())
+                    else if (AuthorList != null && AuthorList.Any())
                     {
-                        @foreach (var author in Authors)
+                        @foreach (var author in AuthorList)
                         {
-                            Console.WriteLine($"Composer: {author.Name}");
-                            <li>@author.Name</li>
+                            <li @onclick="async () => await SelectAuthor(author.Name)">@author.Name</li>
                         }
                     }
                     else
@@ -64,12 +67,11 @@
                     {
                         <li>Загрузка...</li>
                     }
-                    else if (Subjects != null && Subjects.Any())
+                    else if (SubjectList != null && SubjectList.Any())
                     {
-                        @foreach (var subject in Subjects)
+                        @foreach (var subject in SubjectList)
                         {
-                            Console.WriteLine($"Class: {subject.Name}");
-                            <li>@subject.Name</li>
+                            <li @onclick="async () => await SelectSubject(subject.Name)">@subject.Name</li>
                         }
                     }
                     else
@@ -82,8 +84,8 @@
         <div class="main-content">
             <div class="search-container">
                 <div class="search-bar">
-                    <input type="text" class="form-control" id="search" placeholder="Поиск нот" />
-                    <button class="search-btn">
+                    <input type="text" maxlength="30" class="form-control" id="search" @oninput="HandleInput" placeholder="Поиск теории" />
+                    <button class="search-btn" @onclick="HandleSearch">
                         <svg width="20" height="20" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M0.0458984 17.594C0.0458984 26.965 7.67788 34.5616 17.2179 34.5616C21.0339 34.5616 24.5773 33.2342 27.5756 31.0045C27.5756 31.2335 27.8481 31.4461 27.8481 31.6369L41.4767 45.2109C42.2944 46.094 43.9298 46.094 44.7475 45.2109C45.5652 44.3278 45.5652 42.8941 44.7475 42.0109L31.119 28.4369C30.8464 28.2461 30.8464 28.0989 30.5738 27.9899C32.7544 25.117 34.1173 21.5109 34.1173 17.594C34.1173 8.22033 26.4853 0.623779 17.2179 0.623779C7.67788 0.623779 0.0458984 8.22033 0.0458984 17.594ZM4.68016 17.594C4.68016 10.7198 10.1316 5.14841 17.2184 5.14841C24.0327 5.14841 29.4841 10.7198 29.4841 17.594C29.4841 24.4655 24.0327 30.0368 17.2184 30.0368C10.1316 30.0368 4.68016 24.4655 4.68016 17.594Z" fill="black" />
                         </svg>
@@ -106,40 +108,65 @@
                     </div>
                 </div>
             </div>
+            <div class="materials-list">
+                @if (isLoading)
+                {
+                    <p>Загрузка теории...</p>
+                }
+                else if (filteredTheory != null && filteredTheory.Any())
+                {
+                    @foreach (var theory in filteredTheory)
+                    {
+                        <div class="material-container">
+                            <div class="material-item" @onclick="() => OpenPdf(theory)">
+                                <div class="material-content">
+                                    <h3>@theory.Name</h3>
+
+                                    @if (!string.IsNullOrEmpty(theory.Subject?.Name))
+                                    {
+                                        <p>Предмет: @theory.Subject.Name</p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(theory.Class?.Name))
+                                    {
+                                        <p>Класс: @theory.Class.Name</p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(theory.Author?.Name))
+                                    {
+                                        <p>Автор: @theory.Author.Name</p>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(theory.Description))
+                                    {
+                                        <p>Описание: @theory.Description</p>
+                                    }
+
+                                    @if (theory.DateOfCreate.HasValue)
+                                    {
+                                        <p>Дата создания: @theory.DateOfCreate.Value.ToString("dd.MM.yyyy")</p>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (GetDownloadUrl(theory) != null)
+                            {
+                                <div class="functions-button-container">
+                                    <a href="@GetDownloadUrl(theory)" download class="function-button">
+                                        <svg width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M7 0C7.552 0 8 0.45 8 1V6.58997L9.29303 5.29004C9.68303 4.90004 10.317 4.90004 10.707 5.29004C11.098 5.68004 11.098 6.31996 10.707 6.70996L7.70697 9.70996C7.51997 9.88996 7.265 10 7 10C6.735 10 6.48003 9.88996 6.29303 9.70996L3.29303 6.70996C2.90203 6.31996 2.90203 5.68004 3.29303 5.29004C3.68303 4.90004 4.31697 4.90004 4.70697 5.29004L6 6.58997V1C6 0.45 6.448 0 7 0ZM1 7C1.552 7 2 7.45 2 8V11C2 11.55 2.448 12 3 12H11C11.552 12 12 11.55 12 11V8C12 7.45 12.448 7 13 7C13.552 7 14 7.45 14 8V11C14 12.66 12.657 14 11 14H3C1.343 14 0 12.66 0 11V8C0 7.45 0.448 7 1 7Z" fill="grey" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>Теоретический материал не найден</p>
+                }
+            </div>
         </div>
     </div>
 </div>
 
-@code {
-    private bool isLoading = true;
-    private List<Class> Classes = new List<Class>();
-    private List<Author> Authors = new List<Author>();
-    private List<Subject> Subjects = new List<Subject>();
-    private string errorMessage = string.Empty;
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            Classes = await Http.GetFromJsonAsync<List<Class>>("api/class") ?? new List<Class>();
-            Console.WriteLine($"Classes: {Classes?.Count} items");
-
-            Authors = await Http.GetFromJsonAsync<List<Author>>("api/author") ?? new List<Author>();
-            Console.WriteLine($"Authors: {Authors?.Count} items");
-
-            Subjects = await Http.GetFromJsonAsync<List<Subject>>("api/subject") ?? new List<Subject>();
-            Console.WriteLine($"Subjects: {Subjects?.Count} items");
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка загрузки данных: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-            StateHasChanged();
-        }
-    }
-}
