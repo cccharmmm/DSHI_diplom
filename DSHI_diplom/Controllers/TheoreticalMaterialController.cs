@@ -16,15 +16,6 @@ namespace DSHI_diplom.Controllers
         {
             _service = service;
         }
-        [HttpGet("filter")]
-        public async Task<ActionResult<List<TheoreticalMaterial>>> GetFilteredTheoreticalMateral(
-             [FromQuery] string author = null,
-             [FromQuery] string subject = null,
-             [FromQuery] string class_ = null)
-        {
-            var notes = await _service.GetFilteredTheoryAsync(author, subject, class_);
-            return Ok(notes);
-        }
         [HttpGet]
         public async Task<ActionResult<List<TheoreticalMaterial>>> GetAll()
         {

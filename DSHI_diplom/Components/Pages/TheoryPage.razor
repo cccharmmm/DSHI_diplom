@@ -21,17 +21,19 @@
 
         <div class="filter-panel">
             <div class="filter-category">
-                <div class="filter-header">Класс<span class="arrow">▼</span></div>
-                <ul class="filter-list">
+                <div class="filter-header" @onclick="ToggleClassFilter">
+                    Класс<span class="arrow">▼</span>
+                </div>
+                <ul class="filter-list @(isClassFilterOpen ? "show" : "")">
                     @if (isLoading)
                     {
                         <li>Загрузка...</li>
                     }
                     else if (ClassList != null && ClassList.Any())
                     {
-                        @foreach (var class_ in ClassList)
+                        @foreach (var _class in ClassList)
                         {
-                            <li @onclick="async () => await SelectClass(class_.Name)">@class_.Name</li>
+                            <li @onclick="() => SelectClass(_class.Name)">@_class.Name</li>
                         }
                     }
                     else
@@ -41,8 +43,10 @@
                 </ul>
             </div>
             <div class="filter-category">
-                <div class="filter-header">Автор<span class="arrow">▼</span></div>
-                <ul class="filter-list">
+                <div class="filter-header" @onclick="ToggleAuthorFilter">
+                    Автор<span class="arrow">▼</span>
+                </div>
+                <ul class="filter-list @(isAuthorFilterOpen ? "show" : "")">
                     @if (isLoading)
                     {
                         <li>Загрузка...</li>
@@ -51,7 +55,7 @@
                     {
                         @foreach (var author in AuthorList)
                         {
-                            <li @onclick="async () => await SelectAuthor(author.Name)">@author.Name</li>
+                            <li @onclick="() => SelectAuthor(author.Name)">@author.Name</li>
                         }
                     }
                     else
@@ -60,9 +64,12 @@
                     }
                 </ul>
             </div>
+
             <div class="filter-category">
-                <div class="filter-header">Предмет<span class="arrow">▼</span></div>
-                <ul class="filter-list">
+                <div class="filter-header" @onclick="ToggleSubjectFilter">
+                    Предмет<span class="arrow">▼</span>
+                </div>
+                <ul class="filter-list @(isSubjectFilterOpen ? "show" : "")">
                     @if (isLoading)
                     {
                         <li>Загрузка...</li>
@@ -71,7 +78,7 @@
                     {
                         @foreach (var subject in SubjectList)
                         {
-                            <li @onclick="async () => await SelectSubject(subject.Name)">@subject.Name</li>
+                            <li @onclick="() => SelectSubject(subject.Name)">@subject.Name</li>
                         }
                     }
                     else
@@ -79,29 +86,29 @@
                         <li>Нет данных</li>
                     }
                 </ul>
-                 </div>
+            </div>
         </div>
         <div class="main-content">
             <div class="search-container">
                 <div class="search-bar">
                     <input type="text" maxlength="30" class="form-control" id="search" @oninput="HandleInput" placeholder="Поиск теории" />
-                    <button class="search-btn" @onclick="HandleSearch">
+                    <button class="search-btn">
                         <svg width="20" height="20" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M0.0458984 17.594C0.0458984 26.965 7.67788 34.5616 17.2179 34.5616C21.0339 34.5616 24.5773 33.2342 27.5756 31.0045C27.5756 31.2335 27.8481 31.4461 27.8481 31.6369L41.4767 45.2109C42.2944 46.094 43.9298 46.094 44.7475 45.2109C45.5652 44.3278 45.5652 42.8941 44.7475 42.0109L31.119 28.4369C30.8464 28.2461 30.8464 28.0989 30.5738 27.9899C32.7544 25.117 34.1173 21.5109 34.1173 17.594C34.1173 8.22033 26.4853 0.623779 17.2179 0.623779C7.67788 0.623779 0.0458984 8.22033 0.0458984 17.594ZM4.68016 17.594C4.68016 10.7198 10.1316 5.14841 17.2184 5.14841C24.0327 5.14841 29.4841 10.7198 29.4841 17.594C29.4841 24.4655 24.0327 30.0368 17.2184 30.0368C10.1316 30.0368 4.68016 24.4655 4.68016 17.594Z" fill="black" />
                         </svg>
                     </button>
                     <div class="filter-container">
                         <div class="filter-buttons">
-                            <button class="filter-and-sort" onclick="toggleDropdown()">
+                            <button class="filter-and-sort" @onclick="ToggleDropdown_ForSort">
                                 <svg width="35" height="35" viewBox="0 0 44 43" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M16.4998 5.375L9.1665 12.5237H14.6665V25.0833H18.3332V12.5237H23.8332L16.4998 5.375ZM29.3332 30.4762V17.9167H25.6665V30.4762H20.1665L27.4998 37.625L34.8332 30.4762H29.3332Z" fill="black" fill-opacity="0.87" />
                                 </svg>
                             </button>
-                            <div class="dropdown-menu">
+                            <div class="dropdown-menu @(isSortOpen ? "show" : "")">
                                 <ul>
-                                    <li><a href="#">По дате</a></li>
-                                    <li><a href="#">По алфавиту</a></li>
-                                    <li><a href="#">По классам</a></li>
+                                    <li><a @onclick="() => SortByDate()">По дате</a></li>
+                                    <li><a @onclick="() => SortByAlphabet()">По алфавиту</a></li>
+                                    <li><a @onclick="() => SortByClass()">По классам</a></li>
                                 </ul>
                             </div>
                         </div>

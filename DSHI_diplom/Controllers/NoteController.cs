@@ -20,16 +20,6 @@ namespace DSHI_diplom.Controllers
             _service = service;
             _context = context;
         }
-        [HttpGet("filter")]
-        public async Task<ActionResult<List<Note>>> GetFilteredNotes(
-        [FromQuery] string instrument = null,
-        [FromQuery] string composer = null,
-        [FromQuery] string class_ = null,
-        [FromQuery] string musicalForm = null)
-        {
-            var notes = await _service.GetFilteredNotesAsync(instrument, composer, class_, musicalForm);
-            return Ok(notes);
-        }
         [HttpGet]
         public async Task<ActionResult<List<Note>>> GetAll()
         {

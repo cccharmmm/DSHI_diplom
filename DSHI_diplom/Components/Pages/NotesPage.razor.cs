@@ -15,32 +15,34 @@ namespace DSHI_diplom.Components.Pages
 {
     public partial class NotesPage
     {
-        
-        [Inject] private HttpClient HttpClient { get; set; }
-        [Inject] private NavigationManager NavigationManager { get; set; }
+        [Inject] public required HttpClient HttpClient { get; set; }
+        [Inject] public required NavigationManager NavigationManager { get; set; }
 
         private bool showAudioModal = false;
         private string audioUrl = string.Empty;
-        private bool isDropdownOpen = false;
+        private bool isSortOpen = false;
         private string searchText = string.Empty;
-        private string selectedInstrument = null;
-        private string selectedComposer = null;
-        private string selectedClass = null;
-        private string selectedMusicalForm = null;
+        private string? selectedInstrument = null;
+        private string? selectedComposer = null;
+        private string? selectedClass = null;
+        private string? selectedMusicalForm = null;
+        private bool isInstrumentFilterOpen = false;
+        private bool isComposerFilterOpen = false;
+        private bool isClassFilterOpen = false;
+        private bool isMusicalFormFilterOpen = false;
         private bool isLoading = true;
         private string errorMessage = string.Empty;
-        private string currentSortBy = null;
-        private bool isSortedByDate = false;
-        private bool isSortedByAlphabet = false;
-        private bool isSortedByClass = false;
-
+        private string? currentSortBy = null;
         private List<Note> NotesList { get; set; } = new List<Note>();
         private List<Note> filteredNotes { get; set; } = new List<Note>();
         private List<Instrument> InstrumentList { get; set; } = new List<Instrument>();
         private List<Composer> ComposerList { get; set; } = new List<Composer>();
         private List<Class> ClassList { get; set; } = new List<Class>();
-
         private List<MusicalForm> MusicalFormList { get; set; } = new List<MusicalForm>();
+        protected override bool ShouldRender()
+        {
+            return !isLoading; 
+        }
         private void OpenAudioModal(AudioFile audioFile)
         {
             if (audioFile != null && !string.IsNullOrEmpty(audioFile.Path))
@@ -77,8 +79,6 @@ namespace DSHI_diplom.Components.Pages
             {
                 isLoading = true;
                 filteredNotes = await NoteService.GetFilteredNotesBySearchAsync(searchText);
-
-                Console.WriteLine($"Найдено нот по запросу '{searchText}': {filteredNotes.Count}");
             }
             catch (Exception ex)
             {
@@ -89,65 +89,25 @@ namespace DSHI_diplom.Components.Pages
                 isLoading = false;
             }
         }
-
-        private async Task SortByDate()
+        
+        private void ToggleDropdown_ForSort()
         {
-            Console.WriteLine("Сортировка по дате");
-            filteredNotes = await NoteService.GetSortedNotesAsync(filteredNotes, "date");
-            currentSortBy = "date";
-            isSortedByDate = true;
-            isSortedByAlphabet = false;
-            isSortedByClass = false;
-            CloseDropdown();
-            StateHasChanged();
+            isSortOpen = !isSortOpen;
         }
-
-        private async Task SortByAlphabet()
-        {
-            Console.WriteLine("Сортировка по алфавиту");
-            filteredNotes = await NoteService.GetSortedNotesAsync(filteredNotes, "alphabet");
-            currentSortBy = "alphabet";
-            isSortedByDate = false;
-            isSortedByAlphabet = true;
-            isSortedByClass = false;
-            CloseDropdown();
-            StateHasChanged();
-        }
-
-        private async Task SortByClass()
-        {
-            Console.WriteLine("Сортировка по классу");
-            filteredNotes = await NoteService.GetSortedNotesAsync(filteredNotes, "class");
-            currentSortBy = "class";
-            isSortedByDate = false;
-            isSortedByAlphabet = false;
-            isSortedByClass = true;
-            CloseDropdown();
-            StateHasChanged();
-        }
-
-        private void CloseDropdown()
-        {
-            isDropdownOpen = false;
-            StateHasChanged();
-        }
-
-        private void ToggleDropdown()
-        {
-            isDropdownOpen = !isDropdownOpen;
-            StateHasChanged();
-        }
+        
         protected override async Task OnInitializedAsync()
         {
             try
             {
-                NotesList = await NoteService.GetAllAsync();
-                Console.WriteLine($"Загружено нот: {NotesList.Count}");
-                InstrumentList = await InstrumentService.GetAllAsync();
-                ComposerList = await ComposerService.GetAllAsync();
-                ClassList = await ClassService.GetAllAsync();
-                MusicalFormList = await MusicalFormService.GetAllAsync();
-                filteredNotes = NotesList;
+                if (NotesList == null || !NotesList.Any()) 
+                {
+                    NotesList = await NoteService.GetAllAsync();
+                    InstrumentList = await InstrumentService.GetAllAsync();
+                    ComposerList = await ComposerService.GetAllAsync();
+                    ClassList = await ClassService.GetAllAsync();
+                    MusicalFormList = await MusicalFormService.GetAllAsync();
+                    filteredNotes = NotesList.ToList();
+                }
             }
             catch (Exception ex)
             {
@@ -156,42 +116,13 @@ namespace DSHI_diplom.Components.Pages
             finally
             {
                 isLoading = false;
-                StateHasChanged();
             }
-        }
-        private async Task SelectInstrument(string instrumentName)
-        {
-            Console.WriteLine("Метод SelectInstrument вызван");
-            selectedInstrument = instrumentName;
-            Console.WriteLine($"Выбран инструмент: {selectedInstrument}");
-            await ApplyFilters();
-        }
-        private async Task SelectComposer(string composerName)
-        {
-            selectedComposer = composerName;
-            Console.WriteLine($"Выбран композитор: {selectedComposer}");
-            await ApplyFilters();
-        }
-
-        private async Task SelectClass(string className)
-        {
-            selectedClass = className;
-            Console.WriteLine($"Выбран класс: {selectedClass}");
-            await ApplyFilters();
-        }
-
-        private async Task SelectMusicalForm(string musicalFormName)
-        {
-            selectedMusicalForm = musicalFormName;
-            Console.WriteLine($"Выбрана музыкальная форма: {selectedMusicalForm}");
-            await ApplyFilters();
         }
         private async Task OpenPdf(Note note)
         {
             if (note.File != null && !string.IsNullOrEmpty(note.File.Path))
             {
                 var pdfUrl = $"{NavigationManager.BaseUri}pdf/{note.File.Path}";
-                Console.WriteLine($"URL: {pdfUrl}"); 
                 await JSRuntime.InvokeVoidAsync("window.open", pdfUrl, "_blank");
             }
             else
@@ -199,7 +130,7 @@ namespace DSHI_diplom.Components.Pages
                 Console.WriteLine("Файл не найден");
             }
         }
-        private string GetDownloadUrl(Note note)
+        private string? GetDownloadUrl(Note note)
         {
             if (note.File != null && !string.IsNullOrEmpty(note.File.Path))
             {
@@ -207,29 +138,143 @@ namespace DSHI_diplom.Components.Pages
             }
             return null;
         }
-        private async Task ApplyFilters()
+        private async Task ApplySorting()
         {
             try
             {
                 isLoading = true;
-                StateHasChanged();
 
-                filteredNotes = await NoteService.GetFilteredNotesAsync(selectedInstrument, selectedComposer, selectedClass, selectedMusicalForm);
-
-                filteredNotes = await NoteService.GetSortedNotesAsync(filteredNotes, currentSortBy);
-
-                Console.WriteLine($"Отфильтровано и отсортировано нот: {filteredNotes.Count}");
+                await Task.Run(() =>
+                {
+                    switch (currentSortBy)
+                    {
+                        case "date":
+                            filteredNotes = NotesList.OrderBy(n => n.DateOfCreate).ToList();
+                            break;
+                        case "alphabet":
+                            filteredNotes = NotesList.OrderBy(n => n.Name).ToList();
+                            break;
+                        case "class":
+                            filteredNotes = NotesList.OrderBy(n => n.Class != null ? n.Class.Name : string.Empty).ToList();
+                            break;
+                        default:
+                            filteredNotes = NotesList.ToList();
+                            break;
+                    }
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при фильтрации и сортировке нот: {ex.Message}");
+                Console.WriteLine($"Ошибка при сортировке нот: {ex.Message}");
                 errorMessage = "Не удалось загрузить данные. Пожалуйста, попробуйте позже.";
             }
             finally
             {
                 isLoading = false;
-                StateHasChanged();
             }
+        }
+        private async Task SortByDate()
+        {
+            currentSortBy = "date";
+            await ApplySorting();
+            await Task.Delay(200); 
+            isSortOpen = false;
+        }
+
+        private async Task SortByAlphabet()
+        {
+            currentSortBy = "alphabet";
+            await ApplySorting();
+            await Task.Delay(200); 
+            isSortOpen = false;
+        }
+
+        private async Task SortByClass()
+        {
+            currentSortBy = "class";
+            await ApplySorting();
+            await Task.Delay(200); 
+            isSortOpen = false;
+        }
+        private void ApplyFilters()
+        {
+            filteredNotes = NotesList
+                .Where(n =>
+                    (selectedInstrument == null || n.Instrument?.Name == selectedInstrument) &&
+                    (selectedComposer == null || n.Composer?.Name == selectedComposer) &&
+                    (selectedClass == null || n.Class?.Name == selectedClass) &&
+                    (selectedMusicalForm == null || n.Musicalform?.Name == selectedMusicalForm))
+                .ToList();
+        }
+        private void ToggleInstrumentFilter()
+        {
+            isInstrumentFilterOpen = !isInstrumentFilterOpen;
+            if (isInstrumentFilterOpen)
+            {
+                isComposerFilterOpen = false;
+                isClassFilterOpen = false;
+                isMusicalFormFilterOpen = false;
+            }
+        }
+
+        private void ToggleComposerFilter()
+        {
+            isComposerFilterOpen = !isComposerFilterOpen;
+            if (isComposerFilterOpen)
+            {
+                isInstrumentFilterOpen = false;
+                isClassFilterOpen = false;
+                isMusicalFormFilterOpen = false;
+            }
+        }
+
+        private void ToggleClassFilter()
+        {
+            isClassFilterOpen = !isClassFilterOpen;
+            if (isClassFilterOpen)
+            {
+                isInstrumentFilterOpen = false;
+                isComposerFilterOpen = false;
+                isMusicalFormFilterOpen = false;
+            }
+        }
+
+        private void ToggleMusicalFormFilter()
+        {
+            isMusicalFormFilterOpen = !isMusicalFormFilterOpen;
+            if (isMusicalFormFilterOpen)
+            {
+                isInstrumentFilterOpen = false;
+                isClassFilterOpen = false;
+                isComposerFilterOpen = false;
+            }
+        }
+        private void SelectInstrument(string instrument)
+        {
+            selectedInstrument = instrument;
+            isInstrumentFilterOpen = false;
+            ApplyFilters();
+        }
+
+        private void SelectComposer(string composer)
+        {
+            selectedComposer = composer;
+            isComposerFilterOpen = false;
+            ApplyFilters();
+        }
+
+        private void SelectClass(string class_)
+        {
+            selectedClass = class_;
+            isClassFilterOpen = false;
+            ApplyFilters();
+        }
+
+        private void SelectMusicalForm(string musicalForm)
+        {
+            selectedMusicalForm = musicalForm;
+            isMusicalFormFilterOpen = false;
+            ApplyFilters();
         }
     }
 }

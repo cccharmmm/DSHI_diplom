@@ -420,75 +420,18 @@ label {
     border: none;
     cursor: pointer;
     position: relative;
+    transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.filter-and-sort {
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    position: relative;
-}
-
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    background-color: white;
-    border: 1px solid #ddd;
-    padding: 10px;
-    top: 80%;
-    min-width: 120px; 
-    max-width: auto;
-    white-space: nowrap;
-    overflow: hidden; 
-    border-radius: 5px;
-    box-sizing: border-box;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    z-index: 1;
-}
-
-.filter-and-sort:focus + .dropdown-menu {
-    display: block;
-}
-
-.dropdown-menu ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.dropdown-menu li {
-    margin: 10px 0;
-}
-
-    .dropdown-menu li a {
-        text-decoration: none;
-        color: #080808;
-        transition: color 0.3s, background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    .filter-and-sort:hover {
+        transform: scale(1.1);
+        background-color: rgba(0, 0, 0, 0.1);
     }
 
-        .dropdown-menu li a:hover {
-            color: #560606;
-            background-color: #ebe9e2;
-            transform: scale(1.05);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-        }
-
-
-    .dropdown-menu.show {
-        display: block;
+    .filter-and-sort:active {
+        transform: scale(0.95);
+        background-color: rgba(0, 0, 0, 0.2);
     }
-   
-
-
-.filter-and-sort:hover {
-    transform: scale(1.1);
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-.filter-and-sort:active {
-    transform: scale(0.95);
-    background-color: rgba(0, 0, 0, 0.2);
-}
 
 .content-wrapper {
     display: flex;
@@ -497,16 +440,12 @@ label {
 
 .filter-panel {
     width: 300px;
-    min-width:300px;
+    min-width: 300px;
     background: #f8f8f8;
-    margin-top: 10px;
-    margin-right: 5px;
-    margin-left: 10px;
+    margin: 10px 5px 20px 10px;
     padding: 15px;
     border-radius: 8px;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    display: block;
 }
 
 .filter-category {
@@ -542,10 +481,6 @@ label {
     list-style: none;
     margin-top: 10px;
     padding-left: 20px;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
     background-color: #f9f9f9;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 5px;
@@ -557,9 +492,9 @@ label {
     .filter-list li {
         padding: 8px 0;
         font-size: 16px;
-        overflow: hidden;
         border-bottom: 1px solid #ddd;
         cursor: pointer;
+        transition: background-color 0.2s ease, color 0.2s ease;
     }
 
         .filter-list li:hover {
@@ -575,12 +510,52 @@ label {
         display: block;
     }
 
-    .filter-list.hidden {
-        display: none;
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 10px;
+    top: 80%;
+    min-width: 120px;
+    max-width: auto;
+    white-space: nowrap;
+    overflow: hidden;
+    border-radius: 5px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+    .dropdown-menu.show {
+        display: block;
     }
-    .filter-list.open {
-        display: none;
+
+    .dropdown-menu ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
     }
+
+    .dropdown-menu li {
+        margin: 10px 0;
+    }
+
+        .dropdown-menu li a {
+            text-decoration: none;
+            color: #080808;
+            transition: color 0.3s, background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+            .dropdown-menu li a:hover {
+                color: #560606;
+                background-color: #ebe9e2;
+                transform: scale(1.05);
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            }
+
 .modal-overlay {
     position: fixed;
     top: 0;

@@ -31,7 +31,7 @@ public class AuthService
 
         var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
 
-        if (result != null)
+        if (result != null && !string.IsNullOrEmpty(result.Token))
         {
             await _localStorage.SetItemAsStringAsync("authToken", result.Token);
 
@@ -40,7 +40,7 @@ public class AuthService
             Console.WriteLine($"Token: {result.Token}");
         }
 
-        return result;
+        return result ?? throw new Exception("Не удалось получить токен.");
     }
 
 
@@ -50,7 +50,7 @@ public class AuthService
         _httpClient.DefaultRequestHeaders.Authorization = null;
     }
 
-    public async Task<string> GetToken()
+    public async Task<string?> GetToken()
     {
         return await _localStorage.GetItemAsStringAsync("authToken");
     }

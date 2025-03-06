@@ -95,28 +95,31 @@ namespace DSHI_diplom.Components.Pages
 
         private async Task<bool> ValidateRoleFromToken(string token)
         {
-            try
+            return await Task.Run(() =>
             {
-                var handler = new JwtSecurityTokenHandler();
-                var jwtToken = handler.ReadJwtToken(token);
-
-                var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
-
-                if (roleClaim == null)
+                try
                 {
-                    Console.WriteLine("Роль не найдена в токене.");
+                    var handler = new JwtSecurityTokenHandler();
+                    var jwtToken = handler.ReadJwtToken(token);
+
+                    var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+
+                    if (roleClaim == null)
+                    {
+                        Console.WriteLine("Роль не найдена в токене.");
+                        return false;
+                    }
+
+                    Console.WriteLine($"Роль пользователя: {roleClaim.Value}");
+
+                    return roleClaim.Value == "user";
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка в валидации токена: {ex.Message}");
                     return false;
                 }
-
-                Console.WriteLine($"Роль пользователя: {roleClaim.Value}");
-
-                return roleClaim.Value == "user";
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка в валидации токена: {ex.Message}");
-                return false;
-            }
+            });
         }
 
         private async Task HideErrorAfterDelay()

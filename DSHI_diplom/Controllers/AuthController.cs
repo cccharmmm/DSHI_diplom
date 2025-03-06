@@ -32,6 +32,12 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        if (request == null || string.IsNullOrEmpty(request.Login) || string.IsNullOrEmpty(request.Password))
+        {
+            _logger.LogWarning("Некорректные данные для входа.");
+            return BadRequest("Логин и пароль обязательны.");
+        }
+
         _logger.LogInformation("Попытка входа: Login = {Login}, Password = {Password}", request.Login, request.Password);
 
         var user = await _userService.AuthenticateAsync(request.Login, request.Password);
@@ -45,10 +51,10 @@ public class AuthController : ControllerBase
         if (user.Role?.Name != "user")
         {
             _logger.LogWarning("Пользователь {Login} не имеет роли 'user'.", user.Login);
-            return Forbid(); 
+            return Forbid();
         }
-        _logger.LogInformation("Пароль верный, генерируем токен...");
 
+        _logger.LogInformation("Пароль верный, генерируем токен...");
         var token = GenerateJwtToken(user);
 
         var response = new LoginResponse
@@ -72,7 +78,7 @@ public class AuthController : ControllerBase
                 new Claim(ClaimTypes.Role, user.Role?.Name ?? "user")
             };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
         _logger.LogInformation("Ключ JWT: {Key}", _configuration["Jwt:Key"]);
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["Jwt:ExpireDays"]));

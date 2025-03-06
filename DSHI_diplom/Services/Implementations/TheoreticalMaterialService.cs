@@ -7,38 +7,20 @@ namespace DSHI_diplom.Services.Implementations
 {
     public class TheoreticalMaterialService : ITheoreticalMaterialService
     {
-        [Inject] private HttpClient _httpClient { get; set; }
         private readonly DiplomContext _context;
+
         public TheoreticalMaterialService(DiplomContext context)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
         public async Task<List<TheoreticalMaterial>> GetFilteredTheoryBySearchAsync(string searchText)
         {
             var theory = await _context.TheoreticalMaterials
-                .Where(n => n.Name.Contains(searchText) || n.Author.Name.Contains(searchText))
-                .ToListAsync();
+            .Where(n => n.Name.Contains(searchText) || (n.Author != null && n.Author.Name.Contains(searchText)))
+            .ToListAsync();
             return theory;
         }
-        public async Task<List<TheoreticalMaterial>> GetFilteredTheoryAsync(string author, string subject, string class_)
-        {
-            var query = _context.TheoreticalMaterials
-                .Include(n => n.Author)
-                .Include(n => n.Subject)
-                .Include(n => n.Class)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(author))
-                query = query.Where(n => n.Author.Name == author);
-
-            if (!string.IsNullOrEmpty(subject))
-                query = query.Where(n => n.Subject.Name == subject);
-
-            if (!string.IsNullOrEmpty(class_))
-                query = query.Where(n => n.Class.Name == class_);
-
-            return await query.ToListAsync();
-        }
+      
         public async Task<List<TheoreticalMaterial>> GetAllAsync()
         {
             return await _context.TheoreticalMaterials

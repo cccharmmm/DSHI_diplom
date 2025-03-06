@@ -1,28 +1,40 @@
 ﻿using DSHI_diplom.Model;
 using DSHI_diplom.Services.Implementations;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace DSHI_diplom.Components.Pages
 {
     public partial class TestsPage
     {
-        [Inject] private HttpClient HttpClient { get; set; }
-        [Inject] private NavigationManager NavigationManager { get; set; }
+        [Inject] public required HttpClient HttpClient { get; set; }
+        [Inject] public required NavigationManager NavigationManager { get; set; }
 
         private bool isLoading = true;
         private string searchText = string.Empty;
         private string errorMessage = string.Empty;
-        private string selectedSubject = null;
-        private string selectedClass = null;
+        private bool isSortOpen = false;
+        private string? selectedClass = null;
+        private string? selectedSubject = null;
+        private bool isClassFilterOpen = false;
+        private bool isSubjectFilterOpen = false;
+        private string? currentSortBy = null;
         private List<Class> ClassList { get; set; } = new List<Class>();
         private List<Test> TestList { get; set; } = new List<Test>();
         private List<Subject> SubjectList { get; set; } = new List<Subject>();
         private List<Test> filteredTest { get; set; } = new List<Test>();
+
+        protected override bool ShouldRender()
+        {
+            return !isLoading;
+        }
+
         private async Task HandleInput(ChangeEventArgs e)
         {
             searchText = e.Value?.ToString() ?? string.Empty;
             await DebounceSearch();
         }
+
         private async Task DebounceSearch()
         {
             await Task.Delay(300);
@@ -35,7 +47,6 @@ namespace DSHI_diplom.Components.Pages
             {
                 isLoading = true;
                 filteredTest = await TestService.GetFilteredTestBySearchAsync(searchText);
-                Console.WriteLine($"Найдено тестов по запросу '{searchText}': {filteredTest.Count}");
             }
             catch (Exception ex)
             {
@@ -46,26 +57,12 @@ namespace DSHI_diplom.Components.Pages
                 isLoading = false;
             }
         }
-        private async Task SelectSubject(string subjectName)
-        {
-            Console.WriteLine("Метод SelectSubject вызван");
-            selectedSubject = subjectName;
-            Console.WriteLine($"Выбран предмет: {selectedSubject}");
-            await ApplyFilters();
-        }
 
-        private async Task SelectClass(string className)
-        {
-            selectedClass = className;
-            Console.WriteLine($"Выбран класс: {selectedClass}");
-            await ApplyFilters();
-        }
         protected override async Task OnInitializedAsync()
         {
             try
             {
                 TestList = await TestService.GetAllAsync();
-                Console.WriteLine($"Загружено тестов: {TestList.Count}");
                 ClassList = await ClassService.GetAllAsync();
                 SubjectList = await SubjectService.GetAllAsync();
                 filteredTest = TestList;
@@ -80,40 +77,105 @@ namespace DSHI_diplom.Components.Pages
                 StateHasChanged();
             }
         }
-        private async Task ApplyFilters()
+
+        private void ToggleDropdown_ForSort()
+        {
+            isSortOpen = !isSortOpen;
+        }
+
+        private async Task ApplySorting()
         {
             try
             {
                 isLoading = true;
-                StateHasChanged();
 
-                // Применение фильтров
-                filteredTest = await TestService.GetFilteredTestAsync(selectedSubject, selectedClass);
-
-                //// Применение сортировки (если выбрана)
-                //if (isSortedByDate)
-                //    filteredNotes = filteredNotes.OrderBy(n => n.DateOfCreate).ToList();
-                //else if (isSortedByAlphabet)
-                //    filteredNotes = filteredNotes.OrderBy(n => n.Name).ToList();
-                //else if (isSortedByClass)
-                //    filteredNotes = filteredNotes.OrderBy(n => n.Class?.Name).ToList();
-
-                Console.WriteLine($"Отфильтровано и отсортировано теcтов: {filteredTest.Count}");
+                await Task.Run(() =>
+                {
+                    switch (currentSortBy)
+                    {
+                        case "alphabet":
+                            filteredTest = TestList.OrderBy(n => n.Name).ToList();
+                            break;
+                        case "class":
+                            filteredTest = TestList.OrderBy(n => n.Class != null ? n.Class.Name : string.Empty).ToList();
+                            break;
+                        default:
+                            filteredTest = TestList.ToList();
+                            break;
+                    }
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при фильтрации и сортировке тестов: {ex.Message}");
+                Console.WriteLine($"Ошибка при сортировке тестов: {ex.Message}");
                 errorMessage = "Не удалось загрузить данные. Пожалуйста, попробуйте позже.";
             }
             finally
             {
                 isLoading = false;
-                StateHasChanged();
             }
         }
+
+        private async Task SortByAlphabet()
+        {
+            currentSortBy = "alphabet";
+            await ApplySorting();
+            await Task.Delay(200);
+            isSortOpen = false;
+        }
+
+        private async Task SortByClass()
+        {
+            currentSortBy = "class";
+            await ApplySorting();
+            await Task.Delay(200);
+            isSortOpen = false;
+        }
+
+        private void ApplyFilters()
+        {
+            filteredTest = TestList
+                .Where(n =>
+                    (selectedClass == null || n.Class?.Name == selectedClass) &&
+                    (selectedSubject == null || n.Subject?.Name == selectedSubject))
+                .ToList();
+        }
+
+        private void ToggleClassFilter()
+        {
+            isClassFilterOpen = !isClassFilterOpen;
+            if (isClassFilterOpen)
+            {
+                isSubjectFilterOpen = false;
+            }
+        }
+
+        private void ToggleSubjectFilter()
+        {
+            isSubjectFilterOpen = !isSubjectFilterOpen;
+            if (isSubjectFilterOpen)
+            {
+                isClassFilterOpen = false;
+            }
+        }
+
+        private void SelectClass(string class_)
+        {
+            selectedClass = class_;
+            isClassFilterOpen = false;
+            ApplyFilters();
+        }
+
+        private void SelectSubject(string subject)
+        {
+            selectedSubject = subject;
+            isSubjectFilterOpen = false;
+            ApplyFilters();
+        }
+
         private void StartTest(Test test)
         {
-            Console.WriteLine($"Начат тест: {test.Name}"); 
+            Console.WriteLine($"Начат тест: {test.Name}");
         }
     }
 }

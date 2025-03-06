@@ -5,7 +5,7 @@
 @rendermode InteractiveServer
 
 
-<EditForm Model="@_userProfile"  OnInvalidSubmit="HandleInvalidSubmit">
+<EditForm Model="@_userProfile" OnInvalidSubmit="HandleInvalidSubmit">
     <DataAnnotationsValidator />
 <div class="profile-container">
     <h2 class="profile-title" align="center">Личный кабинет</h2>
@@ -30,7 +30,6 @@
             <ValidationMessage For="@(() => _userProfile.Login)" />
     </div>
     @code {
-        private string _password;
         private bool _showPassword = false;
 
         private void TogglePasswordVisibility()
@@ -77,7 +76,7 @@
 </div>
     <div class="form-group">
         <div class="save-button-container">
-            <button class="save-button" @onclick="ConfirmSaveChanges">Сохранить</button>
+                <button class="save-button" @onclick="ValidateAndOpenModal">Сохранить</button>
         </div>
         @if (!string.IsNullOrEmpty(successMessage))
         {

@@ -10,7 +10,5 @@ namespace DSHI_diplom.Services.Interfaces
         Task UpdateAsync(Note note);
         Task DeleteAsync(int id);
         Task<List<Note>> GetFilteredNotesBySearchAsync(string searchText);
-        Task<List<Note>> GetFilteredNotesAsync(string instrument, string composer, string class_, string musicalForm);
-        Task<List<Note>> GetSortedNotesAsync(List<Note> notes, string sortBy);
     }
 }

@@ -7,20 +7,29 @@ namespace DSHI_diplom.Components.Pages
 {
     public partial class TheoryPage
     {
-        [Inject] private HttpClient HttpClient { get; set; }
-        [Inject] private NavigationManager NavigationManager { get; set; }
+        [Inject] public required HttpClient HttpClient { get; set; }
+        [Inject] public required NavigationManager NavigationManager { get; set; }
 
         private bool isLoading = true;
         private string searchText = string.Empty;
         private string errorMessage = string.Empty;
-        private string selectedAuthor = null;
-        private string selectedSubject = null;
-        private string selectedClass = null;
+        private bool isSortOpen = false;
+        private string? selectedAuthor = null;
+        private string? selectedSubject = null;
+        private string? selectedClass = null;
+        private bool isSubjectFilterOpen = false;
+        private bool isAuthorFilterOpen = false;
+        private bool isClassFilterOpen = false;
+        private string? currentSortBy = null;
         private List<Class> ClassList { get; set; } = new List<Class>();
         private List<TheoreticalMaterial> TheoryList { get; set; } = new List<TheoreticalMaterial>();
         private List<Subject> SubjectList { get; set; } = new List<Subject>();
         private List<Author> AuthorList { get; set; } = new List<Author>();
         private List<TheoreticalMaterial> filteredTheory { get; set; } = new List<TheoreticalMaterial>();
+        protected override bool ShouldRender()
+        {
+            return !isLoading;
+        }
         private async Task HandleInput(ChangeEventArgs e)
         {
             searchText = e.Value?.ToString() ?? string.Empty;
@@ -38,7 +47,6 @@ namespace DSHI_diplom.Components.Pages
             {
                 isLoading = true;
                 filteredTheory = await TheoreticalMaterialService.GetFilteredTheoryBySearchAsync(searchText);
-                Console.WriteLine($"Найдено теории по запросу '{searchText}': {filteredTheory.Count}");
             }
             catch (Exception ex)
             {
@@ -49,33 +57,12 @@ namespace DSHI_diplom.Components.Pages
                 isLoading = false;
             }
         }
-        private async Task SelectAuthor(string authorName)
-        {
-            Console.WriteLine("Метод SelectAuthor вызван");
-            selectedAuthor = authorName;
-            Console.WriteLine($"Выбран автор: {selectedAuthor}");
-            await ApplyFilters();
-        }
-        private async Task SelectSubject(string subjectName)
-        {
-            Console.WriteLine("Метод SelectSubject вызван");
-            selectedSubject = subjectName;
-            Console.WriteLine($"Выбран предмет: {selectedSubject}");
-            await ApplyFilters();
-        }
-
-        private async Task SelectClass(string className)
-        {
-            selectedClass = className;
-            Console.WriteLine($"Выбран класс: {selectedClass}");
-            await ApplyFilters();
-        }
+        
         private async Task OpenPdf(TheoreticalMaterial tm)
         {
             if (tm.File != null && !string.IsNullOrEmpty(tm.File.Path))
             {
                 var pdfUrl = $"{NavigationManager.BaseUri}pdf/{tm.File.Path}";
-                Console.WriteLine($"URL: {pdfUrl}");
                 await JSRuntime.InvokeVoidAsync("window.open", pdfUrl, "_blank");
             }
             else
@@ -84,7 +71,7 @@ namespace DSHI_diplom.Components.Pages
                 Console.WriteLine($"File: {tm.File}, Path: {tm.File?.Path}");
             }
         }
-        private string GetDownloadUrl(TheoreticalMaterial tm)
+        private string? GetDownloadUrl(TheoreticalMaterial tm)
         {
             if (tm.File != null && !string.IsNullOrEmpty(tm.File.Path))
             {
@@ -98,7 +85,6 @@ namespace DSHI_diplom.Components.Pages
             try
             {
                 TheoryList = await TheoreticalMaterialService.GetAllAsync();
-                Console.WriteLine($"Загружено теории: {TheoryList.Count}");
                 ClassList = await ClassService.GetAllAsync();
                 SubjectList = await SubjectService.GetAllAsync();
                 AuthorList = await AuthorService.GetAllAsync();
@@ -114,36 +100,127 @@ namespace DSHI_diplom.Components.Pages
                 StateHasChanged();
             }
         }
-        private async Task ApplyFilters()
+        private void ToggleDropdown_ForSort()
+        {
+            isSortOpen = !isSortOpen;
+        }
+        private async Task ApplySorting()
         {
             try
             {
                 isLoading = true;
-                StateHasChanged();
 
-                // Применение фильтров
-                filteredTheory = await TheoreticalMaterialService.GetFilteredTheoryAsync(selectedAuthor, selectedSubject, selectedClass);
-
-                //// Применение сортировки (если выбрана)
-                //if (isSortedByDate)
-                //    filteredNotes = filteredNotes.OrderBy(n => n.DateOfCreate).ToList();
-                //else if (isSortedByAlphabet)
-                //    filteredNotes = filteredNotes.OrderBy(n => n.Name).ToList();
-                //else if (isSortedByClass)
-                //    filteredNotes = filteredNotes.OrderBy(n => n.Class?.Name).ToList();
-
-                Console.WriteLine($"Отфильтровано и отсортировано теории: {filteredTheory.Count}");
+                await Task.Run(() =>
+                {
+                    switch (currentSortBy)
+                    {
+                        case "date":
+                            filteredTheory = TheoryList.OrderBy(n => n.DateOfCreate).ToList();
+                            break;
+                        case "alphabet":
+                            filteredTheory = TheoryList.OrderBy(n => n.Name).ToList();
+                            break;
+                        case "class":
+                            filteredTheory = TheoryList.OrderBy(n => n.Class != null ? n.Class.Name : string.Empty).ToList();
+                            break;
+                        default:
+                            filteredTheory = TheoryList.ToList();
+                            break;
+                    }
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при фильтрации и сортировке теории: {ex.Message}");
+                Console.WriteLine($"Ошибка при сортировке теории: {ex.Message}");
                 errorMessage = "Не удалось загрузить данные. Пожалуйста, попробуйте позже.";
             }
             finally
             {
                 isLoading = false;
-                StateHasChanged();
             }
         }
+        private async Task SortByDate()
+        {
+            currentSortBy = "date";
+            await ApplySorting();
+            await Task.Delay(200);
+            isSortOpen = false;
+        }
+
+        private async Task SortByAlphabet()
+        {
+            currentSortBy = "alphabet";
+            await ApplySorting();
+            await Task.Delay(200);
+            isSortOpen = false;
+        }
+
+        private async Task SortByClass()
+        {
+            currentSortBy = "class";
+            await ApplySorting();
+            await Task.Delay(200);
+            isSortOpen = false;
+        }
+        private void ApplyFilters()
+        {
+            filteredTheory = TheoryList
+                .Where(n =>
+                    (selectedClass == null || n.Class?.Name == selectedClass) &&
+                    (selectedSubject == null || n.Subject?.Name == selectedSubject) &&
+                    (selectedAuthor == null || n.Author?.Name == selectedAuthor))
+                .ToList();
+        }
+        private void ToggleClassFilter()
+        {
+            isClassFilterOpen = !isClassFilterOpen;
+            if (isClassFilterOpen)
+            {
+                isSubjectFilterOpen = false;
+                isAuthorFilterOpen = false;
+            }
+        }
+
+        private void ToggleSubjectFilter()
+        {
+            isSubjectFilterOpen = !isSubjectFilterOpen;
+            if (isSubjectFilterOpen)
+            {
+                isClassFilterOpen = false;
+                isAuthorFilterOpen = false;
+            }
+        }
+
+        private void ToggleAuthorFilter()
+        {
+            isAuthorFilterOpen = !isAuthorFilterOpen;
+            if (isAuthorFilterOpen)
+            {
+                isSubjectFilterOpen = false;
+                isClassFilterOpen = false;
+            }
+        }
+        
+        private void SelectSubject(string subject)
+        {
+            selectedSubject = subject;
+            isSubjectFilterOpen = false;
+            ApplyFilters();
+        }
+
+        private void SelectAuthor(string author)
+        {
+            selectedAuthor = author;
+            isAuthorFilterOpen = false;
+            ApplyFilters();
+        }
+
+        private void SelectClass(string class_)
+        {
+            selectedClass = class_;
+            isClassFilterOpen = false;
+            ApplyFilters();
+        }
+
     }
 }

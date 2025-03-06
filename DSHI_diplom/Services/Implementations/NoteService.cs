@@ -8,47 +8,12 @@ namespace DSHI_diplom.Services.Implementations
 {
     public class NoteService : INoteService
     {
-        [Inject] private HttpClient _httpClient { get; set; }
         private readonly DiplomContext _context;
         public NoteService(DiplomContext context)
         {
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
-        public async Task<List<Note>> GetSortedNotesAsync(List<Note> notes, string sortBy)
-        {
-            var sortedNotes = sortBy switch
-            {
-                "date" => notes.OrderBy(n => n.DateOfCreate).ToList(),
-                "alphabet" => notes.OrderBy(n => n.Name).ToList(),
-                "class" => notes.OrderBy(n => n.Class?.Name).ToList(),
-                _ => notes
-            };
-
-            return await Task.FromResult(sortedNotes);
-        }
-        public async Task<List<Note>> GetFilteredNotesAsync(string instrument, string composer, string class_, string musicalForm)
-        {
-            var query = _context.Notes
-                .Include(n => n.Instrument)
-                .Include(n => n.Composer)
-                .Include(n => n.Class)
-                .Include(n => n.Musicalform)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(instrument))
-                query = query.Where(n => n.Instrument.Name == instrument);
-
-            if (!string.IsNullOrEmpty(composer))
-                query = query.Where(n => n.Composer.Name == composer);
-
-            if (!string.IsNullOrEmpty(class_))
-                query = query.Where(n => n.Class.Name == class_);
-
-            if (!string.IsNullOrEmpty(musicalForm))
-                query = query.Where(n => n.Musicalform.Name == musicalForm);
-
-            return await query.ToListAsync();
-        }
+      
         public async Task<List<Note>> GetAllAsync()
         {
             return await _context.Notes
@@ -59,7 +24,7 @@ namespace DSHI_diplom.Services.Implementations
         public async Task<List<Note>> GetFilteredNotesBySearchAsync(string searchText)
         {
             var notes = await _context.Notes
-                .Where(n => n.Name.Contains(searchText) || n.Composer.Name.Contains(searchText))
+                .Where(n => n.Name.Contains(searchText) || (n.Composer != null && n.Composer.Name.Contains(searchText)))
                 .ToListAsync();
             return notes;
         }
