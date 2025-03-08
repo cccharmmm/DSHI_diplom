@@ -9,6 +9,11 @@ namespace DSHI_diplom.Services.Interfaces
         Task AddAsync(TestResult testResult);
         Task UpdateAsync(TestResult testResult);
         Task DeleteAsync(int id);
+        Task<TestResult?> GetLatestResultByUserIdAsync(int userId);
+        Task<(List<Answer> Answers, int QuestionCount)> GetAnswersByTestResultIdAsync(int testResultId);
+        Task<int> GetQuestionCountByTestIdAsync(int testId);
+        Task<int> GetAttemptNumberAsync(int testId, int userId);
+        Task<TestResult> GetTestResultByIdAsync(int testResultId);
 
     }
 }

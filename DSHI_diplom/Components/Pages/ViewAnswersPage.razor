@@ -1,0 +1,48 @@
+﻿@page "/viewanswers/{TestResultId:int}"
+@inherits LayoutComponentBase
+@layout Layout.LayoutWithHeaderAndFooter
+@inject NavigationManager Navigation
+@inject DSHI_diplom.Services.Interfaces.ITestResultService TestResultService
+@rendermode InteractiveServer
+
+<div class="results-container">
+    <div class="header-container">
+        <h2 class="results-title">Просмотр правильных ответов</h2>
+    </div>
+
+    @if (isLoading)
+    {
+        <p>Загрузка ответов...</p>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-message">
+            @errorMessage
+        </div>
+    }
+    else if (testResult == null)
+    {
+        <p>Ответы не найдены.</p>
+    }
+    else
+    {
+        <div class="results-content">
+            @foreach (var (question, index) in testResult.Test.Questions.Select((q, i) => (q, i + 1)))
+            {
+                <div class="question-container">
+                    <h4>Вопрос @index: @question.Text</h4>
+                    @foreach (var answer in question.Answers.Where(a => a.Rightt)) 
+                    {
+                        <div class="correct-answer">
+                            <span>@answer.Variant</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+            <button class="return-button" @onclick="ReturnToResults">Вернуться к результатам</button>
+        </div>
+    }
+</div>

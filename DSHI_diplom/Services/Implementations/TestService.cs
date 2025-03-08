@@ -18,7 +18,20 @@ namespace DSHI_diplom.Services.Implementations
                 .ToListAsync();
             return test;
         }
-   
+       
+        public async Task<List<Question>> GetQuestionsByTestIdAsync(int testId)
+        {
+            return await _context.Questions
+                .Where(q => q.TestId == testId)
+                .ToListAsync();
+        }
+
+        public async Task<List<Answer>> GetAnswersByQuestionIdAsync(int questionId)
+        {
+            return await _context.Answers
+                .Where(a => a.QuestionId == questionId)
+                .ToListAsync();
+        }
         public async Task<List<Test>> GetAllAsync()
         {
             return await _context.Tests.ToListAsync();

@@ -1,0 +1,71 @@
+﻿@page "/testresults"
+@inherits LayoutComponentBase
+@layout Layout.LayoutWithHeaderAndFooter
+@inject NavigationManager Navigation
+@inject DSHI_diplom.Services.Interfaces.ITestService TestService
+@inject DSHI_diplom.Services.Interfaces.ITestResultService TestResultService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@rendermode InteractiveServer
+
+<div class="results-container">
+    <div class="header-container">
+        <h2 class="results-title">Результаты тестирования</h2>
+    </div>
+
+    @if (isLoading)
+    {
+        <p>Загрузка результатов...</p>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error-message">
+            @errorMessage
+        </div>
+    }
+    else if (testResult == null)
+    {
+        <p>Результаты не найдены.</p>
+    }
+    else
+    {
+        <div class="results-content">
+            <div class="result-item">
+                <span class="result-label">Название теста:</span>
+                <span class="result-value">@testResult.Test?.Name</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Предмет:</span>
+                <span class="result-value">@testResult.Test?.Subject?.Name</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Класс:</span>
+                <span class="result-value">@testResult.Test?.Class?.Name</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Пользователь:</span>
+                <span class="result-value">@currentUserName</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Количество вопросов:</span>
+                <span class="result-value">@testResult.Test?.Questions.Count</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Правильных ответов:</span>
+                <span class="result-value">@correctAnswersCount</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Процент правильных ответов:</span>
+                <span class="result-value">@correctAnswersPercentage%</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Попытка №:</span>
+                <span class="result-value">@attemptNumber</span>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-top: 20px ; flex-direction: column;  align-items: center;">
+            <button class="return-button" @onclick="ReturnToTests" style="margin-bottom: 5px; width: 200px;">Вернуться к тестам</button>
+            <button class="save-button" style="width: 200px;" @onclick="() => ViewAnswers(testResult.Id)">Посмотреть ответы</button>
+        </div>
+    }
+</div>

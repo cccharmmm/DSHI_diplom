@@ -10,6 +10,8 @@ namespace DSHI_diplom.Services.Interfaces
         Task UpdateAsync(Test test);
         Task DeleteAsync(int id);
         Task<List<Test>> GetFilteredTestBySearchAsync(string searchText);
-
+        Task<List<Question>> GetQuestionsByTestIdAsync(int testId);
+        Task<List<Answer>> GetAnswersByQuestionIdAsync(int questionId);
+      
     }
 }

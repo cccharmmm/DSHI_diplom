@@ -122,9 +122,21 @@
                                 </div>
                             </div>
                             <div class="save-button-container">
-                                <button class="save-button" @onclick="() => StartTest(test)" style="padding: 6px 12px; cursor: pointer; width:150px;">
+                                <button class="save-button" @onclick="() => OpenConfirmationModal(test)" style="padding: 6px 12px; cursor: pointer; width:150px;">
                                     Начать тест
                                 </button>
+                                @if (showConfirmationModal)
+                                {
+                                    <div class="modal-overlay">
+                                        <div class="modal-content">
+                                            <h4>Начать тест?</h4>
+                                            <div class="modal-buttons">
+                                                <button id="confirm-start" class="confirm-button" @onclick="StartTest">Начать</button>
+                                                <button id="cancel-start" class="cancel-button" @onclick="CancelStartTest">Отмена</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
                             </div>
                         </div>
                     }

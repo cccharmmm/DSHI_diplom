@@ -11,6 +11,8 @@ namespace DSHI_diplom.Components.Pages
         [Inject] public required NavigationManager NavigationManager { get; set; }
 
         private bool isLoading = true;
+        private Test? currentTest;
+        private bool showConfirmationModal = false; 
         private string searchText = string.Empty;
         private string errorMessage = string.Empty;
         private bool isSortOpen = false;
@@ -97,7 +99,9 @@ namespace DSHI_diplom.Components.Pages
                             filteredTest = TestList.OrderBy(n => n.Name).ToList();
                             break;
                         case "class":
-                            filteredTest = TestList.OrderBy(n => n.Class != null ? n.Class.Name : string.Empty).ToList();
+                            filteredTest = TestList
+                                .OrderBy(n => n.ClassId)
+                                .ToList();
                             break;
                         default:
                             filteredTest = TestList.ToList();
@@ -134,11 +138,27 @@ namespace DSHI_diplom.Components.Pages
 
         private void ApplyFilters()
         {
-            filteredTest = TestList
-                .Where(n =>
-                    (selectedClass == null || n.Class?.Name == selectedClass) &&
-                    (selectedSubject == null || n.Subject?.Name == selectedSubject))
-                .ToList();
+            if (!string.IsNullOrEmpty(selectedClass))
+            {
+                filteredTest = TestList
+                    .Where(n => n.Class?.Name == selectedClass)
+                    .ToList();
+            }
+            else if (!string.IsNullOrEmpty(selectedSubject))
+            {
+                filteredTest = TestList
+                    .Where(n => n.Subject?.Name == selectedSubject)
+                    .ToList();
+            }
+            else
+            {
+                filteredTest = TestList.ToList();
+            }
+        }
+        private void ResetFilters()
+        {
+            selectedSubject = null;
+            selectedClass = null;
         }
 
         private void ToggleClassFilter()
@@ -161,6 +181,7 @@ namespace DSHI_diplom.Components.Pages
 
         private void SelectClass(string class_)
         {
+            ResetFilters();
             selectedClass = class_;
             isClassFilterOpen = false;
             ApplyFilters();
@@ -168,14 +189,32 @@ namespace DSHI_diplom.Components.Pages
 
         private void SelectSubject(string subject)
         {
+            ResetFilters();
             selectedSubject = subject;
             isSubjectFilterOpen = false;
             ApplyFilters();
         }
 
-        private void StartTest(Test test)
+        private void OpenConfirmationModal(Test test)
         {
-            Console.WriteLine($"Начат тест: {test.Name}");
+            ResetFilters();
+            currentTest = test;
+            showConfirmationModal = true;
+        }
+
+        private void StartTest()
+        {
+            if (currentTest != null)
+            {
+                showConfirmationModal = false;
+                Navigation.NavigateTo($"/passthetest/{currentTest.Id}");
+            }
+        }
+
+        private void CancelStartTest()
+        {
+            showConfirmationModal = false;
+            currentTest = null;
         }
     }
 }

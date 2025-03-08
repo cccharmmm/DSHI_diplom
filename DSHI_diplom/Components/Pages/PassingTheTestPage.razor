@@ -1,0 +1,89 @@
+﻿@page "/passthetest/{testId:int}"
+@inherits LayoutComponentBase
+@layout Layout.LayoutWithHeaderAndFooter
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@inject DSHI_diplom.Services.Interfaces.IClassService ClassService
+@inject DSHI_diplom.Services.Interfaces.IMusicalFormService MusicalFormService
+@inject DSHI_diplom.Services.Interfaces.ITestService TestService
+@inject DSHI_diplom.Services.Interfaces.ISubjectService SubjectService
+@inject DSHI_diplom.Services.Interfaces.IQuestionService QuestionService
+@inject DSHI_diplom.Services.Interfaces.IAnswerService AnswerService
+@inject DSHI_diplom.Services.Interfaces.ITestResultService TestResultService
+@rendermode InteractiveServer
+
+<NavigationLock OnBeforeInternalNavigation="OnBeforeNavigation" />
+
+<div class="sheet-music-container">
+    <div class="header-container">
+        <button class="back-button" @onclick="ShowExitConfirmation">← Назад</button>
+        <h2 class="sheet-music-title" style="color: #560606;">Прохождение тестирования</h2>
+    </div>
+    @if (showIncompleteModal)
+    {
+        <div class="modal-overlay">
+            <div class="modal-content">
+                <h4>Ответьте на все вопросы</h4>
+                <div class="modal-buttons">
+                    <button class="confirm-button" @onclick="() => showIncompleteModal = false">ОК</button>
+                </div>
+            </div>
+        </div>
+    }
+    @if (showExitModal)
+    {
+        <div class="modal-overlay">
+            <div class="modal-content">
+                <h4>Выйти, не завершив тест?</h4>
+                <div class="modal-buttons">
+                    <button class="confirm-button" @onclick="ConfirmExit">Выйти</button>
+                    <button class="cancel-button" @onclick="CancelExit">Отмена</button>
+                </div>
+            </div>
+        </div>
+    }
+    @if (showCompleteModal)
+    {
+        <div class="modal-overlay">
+            <div class="modal-content">
+                <h4>Завершить тест?</h4>
+                <div class="modal-buttons">
+                    <button class="confirm-button" @onclick="ConfirmTestCompletion">Завершить</button>
+                    <button class="cancel-button" @onclick="() => showCompleteModal = false">Отмена</button>
+                </div>
+            </div>
+        </div>
+    }
+    @if (isLoading)
+    {
+        <p>Загрузка теста...</p>
+    }
+    else if (currentTest == null)
+    {
+        <p>Тест не найден.</p>
+    }
+    else
+    {
+        <div class="test-container">
+            <div class="questions-frame">
+                @foreach (var (question, index) in currentTest.Questions.Select((q, i) => (q, i + 1)))
+                {
+                    <div class="question-container">
+                        <h4>Вопрос @index: @question.Text</h4>
+                        @foreach (var answer in question.Answers)
+                        {
+                            <label class="answer-container @(selectedAnswers.GetValueOrDefault(question.Id) == answer.Id ? "selected-answer" : "")" for="answer-@answer.Id">
+                                <input type="radio" id="answer-@answer.Id" name="question-@question.Id" value="@answer.Id" @onchange="() => SelectAnswer(question.Id, answer.Id)" />
+                                <span>@answer.Variant</span>
+                            </label>
+                        }
+                    </div>
+                }
+            </div>
+            <div style="display: flex; justify-content: center;">
+                <button class="save-button" style="width: 200px; margin-bottom: 20px;" @onclick="SubmitTest">Завершить тест</button>
+            </div>
+        </div>
+    }
+</div>

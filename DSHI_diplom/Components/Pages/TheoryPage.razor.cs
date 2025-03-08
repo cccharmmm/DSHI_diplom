@@ -121,7 +121,9 @@ namespace DSHI_diplom.Components.Pages
                             filteredTheory = TheoryList.OrderBy(n => n.Name).ToList();
                             break;
                         case "class":
-                            filteredTheory = TheoryList.OrderBy(n => n.Class != null ? n.Class.Name : string.Empty).ToList();
+                            filteredTheory = TheoryList
+                                .OrderBy(n => n.ClassId)
+                                .ToList();
                             break;
                         default:
                             filteredTheory = TheoryList.ToList();
@@ -164,12 +166,34 @@ namespace DSHI_diplom.Components.Pages
         }
         private void ApplyFilters()
         {
-            filteredTheory = TheoryList
-                .Where(n =>
-                    (selectedClass == null || n.Class?.Name == selectedClass) &&
-                    (selectedSubject == null || n.Subject?.Name == selectedSubject) &&
-                    (selectedAuthor == null || n.Author?.Name == selectedAuthor))
-                .ToList();
+            if (!string.IsNullOrEmpty(selectedClass))
+            {
+                filteredTheory = TheoryList
+                    .Where(n => n.Class?.Name == selectedClass)
+                    .ToList();
+            }
+            else if (!string.IsNullOrEmpty(selectedSubject))
+            {
+                filteredTheory = TheoryList
+                    .Where(n => n.Subject?.Name == selectedSubject)
+                    .ToList();
+            }
+            else if (!string.IsNullOrEmpty(selectedAuthor))
+            {
+                filteredTheory = TheoryList
+                    .Where(n => n.Author?.Name == selectedAuthor)
+                    .ToList();
+            }
+            else
+            {
+                filteredTheory = TheoryList.ToList();
+            }
+        }
+        private void ResetFilters()
+        {
+            selectedAuthor = null;
+            selectedSubject = null;
+            selectedClass = null;
         }
         private void ToggleClassFilter()
         {
@@ -203,6 +227,7 @@ namespace DSHI_diplom.Components.Pages
         
         private void SelectSubject(string subject)
         {
+            ResetFilters();
             selectedSubject = subject;
             isSubjectFilterOpen = false;
             ApplyFilters();
@@ -210,6 +235,7 @@ namespace DSHI_diplom.Components.Pages
 
         private void SelectAuthor(string author)
         {
+            ResetFilters();
             selectedAuthor = author;
             isAuthorFilterOpen = false;
             ApplyFilters();
@@ -217,6 +243,7 @@ namespace DSHI_diplom.Components.Pages
 
         private void SelectClass(string class_)
         {
+            ResetFilters();
             selectedClass = class_;
             isClassFilterOpen = false;
             ApplyFilters();

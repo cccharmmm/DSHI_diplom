@@ -155,7 +155,9 @@ namespace DSHI_diplom.Components.Pages
                             filteredNotes = NotesList.OrderBy(n => n.Name).ToList();
                             break;
                         case "class":
-                            filteredNotes = NotesList.OrderBy(n => n.Class != null ? n.Class.Name : string.Empty).ToList();
+                            filteredNotes = NotesList
+                                .OrderBy(n => n.ClassId) 
+                                .ToList();
                             break;
                         default:
                             filteredNotes = NotesList.ToList();
@@ -198,13 +200,41 @@ namespace DSHI_diplom.Components.Pages
         }
         private void ApplyFilters()
         {
-            filteredNotes = NotesList
-                .Where(n =>
-                    (selectedInstrument == null || n.Instrument?.Name == selectedInstrument) &&
-                    (selectedComposer == null || n.Composer?.Name == selectedComposer) &&
-                    (selectedClass == null || n.Class?.Name == selectedClass) &&
-                    (selectedMusicalForm == null || n.Musicalform?.Name == selectedMusicalForm))
-                .ToList();
+            if (!string.IsNullOrEmpty(selectedInstrument))
+            {
+                filteredNotes = NotesList
+                    .Where(n => n.Instrument?.Name == selectedInstrument)
+                    .ToList();
+            }
+            else if (!string.IsNullOrEmpty(selectedComposer))
+            {
+                filteredNotes = NotesList
+                    .Where(n => n.Composer?.Name == selectedComposer)
+                    .ToList();
+            }
+            else if (!string.IsNullOrEmpty(selectedClass))
+            {
+                filteredNotes = NotesList
+                    .Where(n => n.Class?.Name == selectedClass)
+                    .ToList();
+            }
+            else if (!string.IsNullOrEmpty(selectedMusicalForm))
+            {
+                filteredNotes = NotesList
+                    .Where(n => n.Musicalform?.Name == selectedMusicalForm)
+                    .ToList();
+            }
+            else
+            {
+                filteredNotes = NotesList.ToList();
+            }
+        }
+        private void ResetFilters()
+        {
+            selectedInstrument = null;
+            selectedComposer = null;
+            selectedClass = null;
+            selectedMusicalForm = null;
         }
         private void ToggleInstrumentFilter()
         {
@@ -251,6 +281,7 @@ namespace DSHI_diplom.Components.Pages
         }
         private void SelectInstrument(string instrument)
         {
+            ResetFilters();
             selectedInstrument = instrument;
             isInstrumentFilterOpen = false;
             ApplyFilters();
@@ -258,6 +289,7 @@ namespace DSHI_diplom.Components.Pages
 
         private void SelectComposer(string composer)
         {
+            ResetFilters();
             selectedComposer = composer;
             isComposerFilterOpen = false;
             ApplyFilters();
@@ -265,6 +297,7 @@ namespace DSHI_diplom.Components.Pages
 
         private void SelectClass(string class_)
         {
+            ResetFilters();
             selectedClass = class_;
             isClassFilterOpen = false;
             ApplyFilters();
@@ -272,6 +305,7 @@ namespace DSHI_diplom.Components.Pages
 
         private void SelectMusicalForm(string musicalForm)
         {
+            ResetFilters();
             selectedMusicalForm = musicalForm;
             isMusicalFormFilterOpen = false;
             ApplyFilters();
